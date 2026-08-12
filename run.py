@@ -7,7 +7,7 @@ from pathlib import Path
 
 import requests
 
-from nim_client import call_nim
+from inference_client import call_inference_model
 from pipeline.analysis import compute_statistics
 from pipeline.config import (
     OUTPUT_ROOT,
@@ -83,9 +83,9 @@ def post_to_website(
     )
 
     if website_token:
-        headers[
-            "Authorization"
-        ] = f"Bearer {website_token}"
+        headers["Authorization"] = (
+            f"Bearer {website_token}"
+        )
 
     response = requests.post(
         endpoint,
@@ -131,11 +131,11 @@ def main() -> None:
     )
 
     parser.add_argument(
-        "--no-nim",
+        "--no-inference",
         action="store_true",
         help=(
             "Run only the deterministic Python pipeline. "
-            "Do not call NVIDIA NIM."
+            "Do not call the inference model."
         ),
     )
 
@@ -370,13 +370,13 @@ def main() -> None:
     )
 
     # =========================================================
-    # NIM DISABLED
+    # INFERENCE DISABLED
     # =========================================================
 
-    if args.no_nim:
+    if args.no_inference:
 
         print(
-            "\nNIM disabled."
+            "\nInference step disabled."
         )
 
         print(
@@ -392,14 +392,14 @@ def main() -> None:
         return
 
     # =========================================================
-    # 7. NVIDIA NIM
+    # 7. INFERENCE
     # =========================================================
 
     print(
-        "\n[7/8] Sending evidence to NVIDIA NIM..."
+        "\n[7/8] Sending evidence to inference model..."
     )
 
-    result = call_nim(
+    result = call_inference_model(
         evidence=evidence,
 
         system_prompt_path=(

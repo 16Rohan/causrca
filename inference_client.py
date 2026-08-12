@@ -27,23 +27,23 @@ DEFAULT_TIMEOUT = 600
 # EXCEPTIONS
 # =============================================================================
 
-class NIMError(RuntimeError):
+class InferenceError(RuntimeError):
     pass
 
 
-class NIMConfigurationError(NIMError):
+class InferenceConfigurationError(InferenceError):
     pass
 
 
-class NIMRequestError(NIMError):
+class InferenceRequestError(InferenceError):
     pass
 
 
-class NIMResponseError(NIMError):
+class InferenceResponseError(InferenceError):
     pass
 
 
-class SchemaValidationError(NIMResponseError):
+class SchemaValidationError(InferenceResponseError):
     pass
 
 
@@ -59,7 +59,7 @@ def _env(
     value = os.getenv(name, default)
 
     if value is None or not value.strip():
-        raise NIMConfigurationError(
+        raise InferenceConfigurationError(
             f"Missing required environment variable: {name}"
         )
 
@@ -79,7 +79,7 @@ def _int_env(
     try:
         return int(raw)
     except ValueError as exc:
-        raise NIMConfigurationError(
+        raise InferenceConfigurationError(
             f"{name} must be an integer: {raw!r}"
         ) from exc
 
@@ -97,7 +97,7 @@ def _float_env(
     try:
         return float(raw)
     except ValueError as exc:
-        raise NIMConfigurationError(
+        raise InferenceConfigurationError(
             f"{name} must be numeric: {raw!r}"
         ) from exc
 
@@ -120,48 +120,48 @@ def _bool_env(
     if value in {"0", "false", "no", "off"}:
         return False
 
-    raise NIMConfigurationError(
+    raise InferenceConfigurationError(
         f"{name} must be true/false: {raw!r}"
     )
 
 
-def get_nim_config() -> dict[str, Any]:
+def get_inference_config() -> dict[str, Any]:
 
     max_tokens = _int_env(
-        "NIM_MAX_TOKENS",
+        "MAX_TOKENS",
         DEFAULT_MAX_TOKENS,
     )
 
     if max_tokens < 1:
-        raise NIMConfigurationError(
-            "NIM_MAX_TOKENS must be >= 1."
+        raise InferenceConfigurationError(
+            "MAX_TOKENS must be >= 1."
         )
 
     timeout = _int_env(
-        "NIM_TIMEOUT",
+        "TIMEOUT",
         DEFAULT_TIMEOUT,
     )
 
     if timeout < 1:
-        raise NIMConfigurationError(
-            "NIM_TIMEOUT must be >= 1."
+        raise InferenceConfigurationError(
+            "TIMEOUT must be >= 1."
         )
 
     return {
-        "api_key": _env("NVIDIA_API_KEY"),
-        "model": _env("NIM_MODEL"),
+        "api_key": _env("MODEL_API_KEY"),
+        "model": _env("MODEL"),
         "base_url": os.getenv(
-            "NIM_BASE_URL",
+            "BASE_URL",
             DEFAULT_BASE_URL,
         ).strip().rstrip("/"),
         "temperature": _float_env(
-            "NIM_TEMPERATURE",
+            "TEMPERATURE",
             DEFAULT_TEMPERATURE,
         ),
         "max_tokens": max_tokens,
         "timeout": timeout,
         "json_mode": _bool_env(
-            "NIM_JSON_MODE",
+            "JSON_MODE",
             True,
         ),
     }
@@ -433,7 +433,7 @@ def validate_output(
         )
 
     raise SchemaValidationError(
-        "NIM output failed the fixed JSON contract:\n"
+        "Model output failed the fixed JSON contract:\n"
         + message
     )
 
@@ -456,8 +456,8 @@ def _extract_json(
             result,
             dict,
         ):
-            raise NIMResponseError(
-                "NIM returned JSON, but the root "
+            raise InferenceResponseError(
+                "Model returned JSON, but the root "
                 "value is not an object."
             )
 
@@ -479,8 +479,8 @@ def _extract_json(
     start = text.find("{")
 
     if start < 0:
-        raise NIMResponseError(
-            "NIM response contains no JSON object."
+        raise InferenceResponseError(
+            "Model response contains no JSON object."
         )
 
     depth = 0
@@ -527,8 +527,8 @@ def _extract_json(
                         candidate
                     )
                 except json.JSONDecodeError as exc:
-                    raise NIMResponseError(
-                        "NIM produced malformed JSON: "
+                    raise InferenceResponseError(
+                        "Model produced malformed JSON: "
                         f"{exc.msg} "
                         f"(line {exc.lineno}, "
                         f"column {exc.colno})"
@@ -538,15 +538,15 @@ def _extract_json(
                     result,
                     dict,
                 ):
-                    raise NIMResponseError(
-                        "Extracted NIM JSON root "
+                    raise InferenceResponseError(
+                        "Extracted JSON root "
                         "is not an object."
                     )
 
                 return result
 
-    raise NIMResponseError(
-        "NIM returned an unclosed JSON object."
+    raise InferenceResponseError(
+        "Model returned an unclosed JSON object."
     )
 
 
@@ -567,10 +567,10 @@ def _message_content(
         IndexError,
         TypeError,
     ) as exc:
-        raise NIMResponseError(
+        raise InferenceResponseError(
             "Could not extract "
             "choices[0].message.content "
-            "from NIM response."
+            "from model response."
         ) from exc
 
     if isinstance(
@@ -597,8 +597,8 @@ def _message_content(
         if parts:
             return "".join(parts)
 
-    raise NIMResponseError(
-        "NIM returned unsupported message content."
+    raise InferenceResponseError(
+        "Model returned unsupported message content."
     )
 
 
@@ -665,17 +665,17 @@ def _user_message(
 
 
 # =============================================================================
-# NIM REQUEST
+# INFERENCE MODEL REQUEST
 # =============================================================================
 
-def call_nim(
+def call_inference_model(
     *,
     evidence: dict,
     system_prompt_path: str | Path,
     output_example_path: str | Path,
 ) -> dict:
 
-    config = get_nim_config()
+    config = get_inference_config()
 
     system_prompt = _read_text(
         system_prompt_path
@@ -689,12 +689,12 @@ def call_nim(
         schema,
         dict,
     ):
-        raise NIMConfigurationError(
+        raise InferenceConfigurationError(
             "Output example root must be an object."
         )
 
-    # The only data supplied to NIM from the
-    # analysis pipeline is AnalysisEvidence.
+    # The only data supplied to the model from the analysis
+    # pipeline is AnalysisEvidence.
     #
     # No CSV or raw dataset is loaded here.
 
@@ -708,7 +708,7 @@ def call_nim(
         TypeError,
         ValueError,
     ) as exc:
-        raise NIMResponseError(
+        raise InferenceResponseError(
             "AnalysisEvidence is not valid strict JSON."
         ) from exc
 
@@ -764,14 +764,14 @@ def call_nim(
         )
 
     except requests.Timeout as exc:
-        raise NIMRequestError(
-            "NVIDIA NIM request timed out after "
+        raise InferenceRequestError(
+            "Inference request timed out after "
             f"{config['timeout']} seconds."
         ) from exc
 
     except requests.RequestException as exc:
-        raise NIMRequestError(
-            f"NVIDIA NIM request failed: {exc}"
+        raise InferenceRequestError(
+            f"Inference request failed: {exc}"
         ) from exc
 
     if not response.ok:
@@ -781,16 +781,16 @@ def call_nim(
         if len(body) > 4000:
             body = body[:4000] + "..."
 
-        raise NIMRequestError(
-            f"NVIDIA NIM returned HTTP "
+        raise InferenceRequestError(
+            f"Inference endpoint returned HTTP "
             f"{response.status_code}.\n{body}"
         )
 
     try:
         api_response = response.json()
     except ValueError as exc:
-        raise NIMResponseError(
-            "NVIDIA NIM returned invalid API JSON."
+        raise InferenceResponseError(
+            "Inference endpoint returned invalid API JSON."
         ) from exc
 
     content = _message_content(
@@ -822,7 +822,7 @@ def call_nim(
         ValueError,
     ) as exc:
         raise SchemaValidationError(
-            "NIM output is not valid strict JSON."
+            "Model output is not valid strict JSON."
         ) from exc
 
     return result
@@ -834,10 +834,10 @@ def call_nim(
 
 def main() -> None:
 
-    config = get_nim_config()
+    config = get_inference_config()
 
     print(
-        "NVIDIA NIM configuration OK"
+        "Inference client configuration OK"
     )
     print(
         f"Model       : {config['model']}"
