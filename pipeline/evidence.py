@@ -1,251 +1,584 @@
+# pipeline/evidence.py
+"""
+Compact AnalysisEvidence builder for causRCA.
+
+Purpose
+-------
+Convert deterministic Python analysis into a compact representation
+suitable for LLM-based root-cause analysis.
+
+The LLM must NOT receive the raw dataset or record-level event history.
+
+Instead, this module sends:
+
+    case metadata
+    time window
+    compact signal statistics
+    unique event definitions
+    grouped event occurrences
+    causal/temporal relationships
+    affected entities
+    significant changes
+    deterministic evidence
+    ground-truth availability
+    data-quality information
+
+Repeated observations are represented once and referenced by ID.
+
+Final LLM output schema:
+    UNCHANGED.
+
+This module only controls the intermediate representation.
+"""
+
 from __future__ import annotations
 
+import math
 from collections import defaultdict
-from typing import Any
-
-from .analysis import compare_windows
+from typing import Any, Dict, List
 
 
 # =============================================================================
-# SIGNAL INVENTORY
+# CONSTANTS
 # =============================================================================
 
-def _build_signal_inventory(
-    statistics: dict,
-) -> list[dict]:
-
-    inventory: list[dict] = []
-
-    for node, stats in statistics.get(
-        "numeric",
-        {},
-    ).items():
-
-        inventory.append(
-            {
-                "id": node,
-                "type": "signal",
-                "variable_type": stats.get(
-                    "type"
-                ),
-                "statistics": stats,
-                "source": (
-                    "deterministic_python_analysis"
-                ),
-            }
-        )
-
-    for node, stats in statistics.get(
-        "categorical",
-        {},
-    ).items():
-
-        inventory.append(
-            {
-                "id": node,
-                "type": "signal",
-                "variable_type": stats.get(
-                    "type"
-                ),
-                "statistics": stats,
-                "source": (
-                    "deterministic_python_analysis"
-                ),
-            }
-        )
-
-    return inventory
+MAX_SIGNALS = 100
+MAX_EVENTS = 100
+MAX_EVENT_GROUPS = 100
+MAX_RELATIONSHIPS = 200
+MAX_AFFECTED_ENTITIES = 100
+MAX_EVIDENCE = 150
+MAX_CANDIDATE_CAUSES = 100
+MAX_CHANGES = 100
 
 
 # =============================================================================
-# ALARM EVIDENCE
+# HELPERS
 # =============================================================================
 
-def _build_alarm_evidence(
-    statistics: dict,
-) -> list[dict]:
+def _safe_float(
+    value: Any,
+) -> float | None:
+    """Return a finite float or None."""
 
-    evidence: list[dict] = []
+    if value is None or isinstance(value, bool):
+        return None
 
-    for index, alarm in enumerate(
-        statistics.get("alarms", []),
-        start=1,
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return None
+
+    if not math.isfinite(result):
+        return None
+
+    return result
+
+
+def _clean_number(
+    value: Any,
+) -> Any:
+    """
+    Convert finite numeric values into JSON-safe values.
+
+    Integer-valued floats are converted to integers only to keep the
+    intermediate JSON compact and readable.
+    """
+
+    if isinstance(value, bool):
+        return value
+
+    if isinstance(value, int):
+        return value
+
+    if isinstance(value, float):
+
+        if not math.isfinite(value):
+            return None
+
+        if value.is_integer():
+            return int(value)
+
+        return value
+
+    return value
+
+
+def _clean(
+    value: Any,
+) -> Any:
+    """Recursively sanitize values for strict JSON."""
+
+    if isinstance(value, dict):
+        return {
+            str(key): _clean(child)
+            for key, child in value.items()
+        }
+
+    if isinstance(value, list):
+        return [
+            _clean(child)
+            for child in value
+        ]
+
+    return _clean_number(value)
+
+
+def _limit(
+    items: List[Any],
+    limit: int,
+) -> List[Any]:
+    """Return a deterministic bounded list."""
+
+    return items[:limit]
+
+
+# =============================================================================
+# CASE INFORMATION
+# =============================================================================
+
+def _build_case(
+    case: Dict[str, Any] | None,
+) -> Dict[str, Any]:
+    """
+    Preserve useful case metadata without copying raw dataset information.
+    """
+
+    if not case:
+        return {
+            "id": "unknown",
+            "source": "causRCA",
+        }
+
+    result: Dict[str, Any] = {}
+
+    for key in (
+        "id",
+        "name",
+        "type",
+        "source",
+        "dataset",
+        "path",
     ):
+        if key in case:
+            result[key] = case[key]
 
-        evidence.append(
-            {
-                "event_id": (
-                    f"ALARM-EVENT-{index:04d}"
-                ),
-                "timestamp": alarm.get(
-                    "first"
-                ),
-                "node": alarm.get(
-                    "node"
-                ),
-                "type": "Alarm",
-                "value": 1,
-                "occurrences": alarm.get(
-                    "count",
-                    0,
-                ),
-                "first_detected": alarm.get(
-                    "first"
-                ),
-                "last_detected": alarm.get(
-                    "last"
-                ),
-                "frequency": alarm.get(
-                    "frequency",
-                    0.0,
-                ),
-                "source": (
-                    "deterministic_python_analysis"
-                ),
-            }
-        )
+    if "id" not in result:
+        result["id"] = "unknown"
 
-    return evidence
+    return result
 
 
 # =============================================================================
-# SIGNIFICANT EVENTS
+# TIME WINDOW
 # =============================================================================
 
-def _build_events(
-    records: list[dict],
-    anomalies: list[dict],
-) -> list[dict]:
+def _build_time_window(
+    records: List[Dict[str, Any]],
+) -> Dict[str, float]:
+    """Determine the relative analysis time window."""
 
-    """
-    Build the event array expected by AnalysisEvidence.
+    if not records:
+        return {
+            "start": 0.0,
+            "end": 0.0,
+        }
 
-    We deliberately do NOT copy every resampled observation into this array.
-
-    Events are significant observations that are useful for RCA:
-      - alarm activations
-      - observations belonging to deterministic anomaly windows
-      - signal changes associated with detected anomalies
-
-    The complete raw/resampled data remains outside the NIM contract.
-    """
-
-    events: list[dict] = []
-
-    # -------------------------------------------------------------------------
-    # Index anomaly windows by affected entity.
-    # -------------------------------------------------------------------------
-
-    anomaly_windows: dict[
-        str,
-        list[tuple[float, float, str]],
-    ] = defaultdict(list)
-
-    for anomaly in anomalies:
-
-        start = anomaly.get(
-            "first_detected"
-        )
-
-        end = anomaly.get(
-            "last_detected"
-        )
-
-        if start is None or end is None:
-            continue
-
-        for entity in anomaly.get(
-            "affected_entities",
-            [],
-        ):
-
-            anomaly_windows[
-                entity
-            ].append(
-                (
-                    float(start),
-                    float(end),
-                    anomaly["id"],
-                )
-            )
-
-    # -------------------------------------------------------------------------
-    # Extract meaningful records.
-    # -------------------------------------------------------------------------
+    times = []
 
     for record in records:
 
-        node = record.get(
-            "node"
+        value = _safe_float(
+            record.get("time_s")
         )
 
-        timestamp = record.get(
-            "time_s"
+        if value is not None:
+            times.append(value)
+
+    if not times:
+        return {
+            "start": 0.0,
+            "end": 0.0,
+        }
+
+    return {
+        "start": min(times),
+        "end": max(times),
+    }
+
+
+# =============================================================================
+# SIGNALS
+# =============================================================================
+
+def _build_signals(
+    analysis: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Produce compact signal definitions.
+
+    Full raw signal histories are intentionally excluded.
+    """
+
+    numeric_stats = analysis.get(
+        "numeric_stats",
+        {},
+    )
+
+    alarm_stats = analysis.get(
+        "alarm_stats",
+        [],
+    )
+
+    alarm_by_node = {
+        str(item.get("node")): item
+        for item in alarm_stats
+    }
+
+    signals: List[
+        Dict[str, Any]
+    ] = []
+
+    for node, stats in numeric_stats.items():
+
+        signal: Dict[str, Any] = {
+            "id": str(node),
+            "type": "numeric",
+            "count": stats.get("count", 0),
+            "min": stats.get("min"),
+            "max": stats.get("max"),
+            "mean": stats.get("mean"),
+            "median": stats.get("median"),
+            "stdev": stats.get("stdev"),
+        }
+
+        if node in alarm_by_node:
+            signal["alarm_activity"] = (
+                alarm_by_node[node]
+            )
+
+        signals.append(signal)
+
+    # Add alarm-only entities.
+    existing = {
+        signal["id"]
+        for signal in signals
+    }
+
+    for item in alarm_stats:
+
+        node = str(
+            item.get("node", "")
         )
 
-        value = record.get(
-            "value"
-        )
-
-        variable_type = record.get(
-            "type"
-        )
-
-        if node is None or timestamp is None:
+        if not node or node in existing:
             continue
 
-        timestamp = float(timestamp)
-
-        related_anomalies: list[str] = []
-
-        for (
-            start,
-            end,
-            anomaly_id,
-        ) in anomaly_windows.get(
-            node,
-            [],
-        ):
-
-            if start <= timestamp <= end:
-
-                related_anomalies.append(
-                    anomaly_id
-                )
-
-        # Alarm activations are always significant.
-        is_alarm_event = (
-            variable_type == "Alarm"
-            and value == 1
-        )
-
-        # Non-alarm records are included only when they fall
-        # inside a deterministic anomaly window.
-        if (
-            not is_alarm_event
-            and not related_anomalies
-        ):
-            continue
-
-        events.append(
+        signals.append(
             {
-                "event_id": (
-                    f"EVENT-{len(events) + 1:06d}"
+                "id": node,
+                "type": "alarm",
+                "alarm_activity": item,
+            }
+        )
+
+    signals.sort(
+        key=lambda item: (
+            str(item.get("id", ""))
+        )
+    )
+
+    return _limit(
+        signals,
+        MAX_SIGNALS,
+    )
+
+
+# =============================================================================
+# EVENT CATALOG
+# =============================================================================
+
+def _build_event_catalog(
+    analysis: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Keep each unique event definition exactly once.
+    """
+
+    catalog = analysis.get(
+        "event_catalog",
+        [],
+    )
+
+    result: List[
+        Dict[str, Any]
+    ] = []
+
+    for event in catalog:
+
+        result.append(
+            {
+                "id": event.get("id"),
+                "node": event.get("node"),
+                "type": event.get("type"),
+                "pattern": event.get("pattern"),
+            }
+        )
+
+    result.sort(
+        key=lambda item: str(
+            item.get("id", "")
+        )
+    )
+
+    return _limit(
+        result,
+        MAX_EVENTS,
+    )
+
+
+# =============================================================================
+# EVENT GROUPS
+# =============================================================================
+
+def _build_event_groups(
+    analysis: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Aggregate event occurrences.
+
+    No individual event records are copied.
+    """
+
+    groups = analysis.get(
+        "event_groups",
+        [],
+    )
+
+    result: List[
+        Dict[str, Any]
+    ] = []
+
+    for group in groups:
+
+        result.append(
+            {
+                "id": group.get("id"),
+                "event_id": group.get(
+                    "event_id"
                 ),
-                "timestamp": timestamp,
-                "node": node,
-                "type": variable_type,
-                "value": value,
-                "related_anomalies": (
-                    related_anomalies
+                "node": group.get("node"),
+                "type": group.get("type"),
+                "pattern": group.get(
+                    "pattern"
                 ),
-                "source": (
-                    "deterministic_python_analysis"
+                "occurrences": group.get(
+                    "occurrences",
+                    0,
+                ),
+                "first_seen": group.get(
+                    "first_seen"
+                ),
+                "last_seen": group.get(
+                    "last_seen"
+                ),
+                "duration": group.get(
+                    "duration"
                 ),
             }
         )
 
-    return events
+    result.sort(
+        key=lambda item: (
+            -float(
+                item.get(
+                    "occurrences",
+                    0,
+                )
+                or 0
+            ),
+            str(
+                item.get(
+                    "id",
+                    "",
+                )
+            ),
+        )
+    )
+
+    return _limit(
+        result,
+        MAX_EVENT_GROUPS,
+    )
+
+
+# =============================================================================
+# OCCURRENCE ANALYSIS
+# =============================================================================
+
+def _build_occurrence_analysis(
+    analysis: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Keep aggregated occurrence statistics only.
+
+    The individual observations that produced these statistics are
+    deliberately discarded.
+    """
+
+    occurrences = analysis.get(
+        "occurrence_analysis",
+        [],
+    )
+
+    result = [
+        dict(item)
+        for item in occurrences
+        if isinstance(item, dict)
+    ]
+
+    result.sort(
+        key=lambda item: (
+            -float(
+                item.get(
+                    "count",
+                    0,
+                )
+                or 0
+            ),
+            str(
+                item.get(
+                    "group_id",
+                    "",
+                )
+            ),
+        )
+    )
+
+    return _limit(
+        result,
+        MAX_EVENT_GROUPS,
+    )
+
+
+# =============================================================================
+# STATE TRANSITIONS
+# =============================================================================
+
+def _build_state_transitions(
+    analysis: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Include aggregated state transitions, not raw transition records.
+    """
+
+    transitions = analysis.get(
+        "state_transitions",
+        [],
+    )
+
+    result = [
+        {
+            "node": item.get("node"),
+            "from": item.get("from"),
+            "to": item.get("to"),
+            "count": item.get("count"),
+            "first_seen": item.get(
+                "first_seen"
+            ),
+            "last_seen": item.get(
+                "last_seen"
+            ),
+        }
+        for item in transitions
+        if isinstance(item, dict)
+    ]
+
+    result.sort(
+        key=lambda item: (
+            -float(
+                item.get(
+                    "count",
+                    0,
+                )
+                or 0
+            ),
+            str(
+                item.get(
+                    "node",
+                    "",
+                )
+            ),
+        )
+    )
+
+    return _limit(
+        result,
+        MAX_EVENT_GROUPS,
+    )
+
+
+# =============================================================================
+# SIGNIFICANT CHANGES
+# =============================================================================
+
+def _build_significant_changes(
+    analysis: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Include only the most significant deterministic changes.
+
+    These are evidence of change, not automatically anomalies.
+    """
+
+    changes = analysis.get(
+        "significant_changes",
+        [],
+    )
+
+    result = [
+        {
+            "node": item.get("node"),
+            "time_s": item.get("time_s"),
+            "previous": item.get(
+                "previous"
+            ),
+            "current": item.get(
+                "current"
+            ),
+            "delta": item.get(
+                "delta"
+            ),
+            "absolute_delta": item.get(
+                "absolute_delta"
+            ),
+        }
+        for item in changes
+        if isinstance(item, dict)
+    ]
+
+    result.sort(
+        key=lambda item: (
+            -float(
+                item.get(
+                    "absolute_delta",
+                    0,
+                )
+                or 0
+            ),
+            str(
+                item.get(
+                    "node",
+                    "",
+                )
+            ),
+        )
+    )
+
+    return _limit(
+        result,
+        MAX_CHANGES,
+    )
 
 
 # =============================================================================
@@ -253,236 +586,57 @@ def _build_events(
 # =============================================================================
 
 def _build_relationships(
-    anomalies: list[dict],
-) -> list[dict]:
+    causal: Dict[str, Any] | None,
+) -> List[Dict[str, Any]]:
+    """Build the compact relationship graph."""
 
-    """
-    Build temporal relationships between detected anomalies.
+    if not causal:
+        return []
 
-    These relationships indicate temporal overlap only.
-    They do NOT assert causality.
-    """
-
-    relationships: list[dict] = []
-
-    for index, left in enumerate(
-        anomalies
-    ):
-
-        left_start = left.get(
-            "first_detected"
-        )
-
-        left_end = left.get(
-            "last_detected"
-        )
-
-        if (
-            left_start is None
-            or left_end is None
-        ):
-            continue
-
-        for right in anomalies[
-            index + 1:
-        ]:
-
-            right_start = right.get(
-                "first_detected"
-            )
-
-            right_end = right.get(
-                "last_detected"
-            )
-
-            if (
-                right_start is None
-                or right_end is None
-            ):
-                continue
-
-            overlap_start = max(
-                left_start,
-                right_start,
-            )
-
-            overlap_end = min(
-                left_end,
-                right_end,
-            )
-
-            if overlap_start <= overlap_end:
-
-                relationships.append(
-                    {
-                        "relationship_id": (
-                            f"REL-{len(relationships) + 1:04d}"
-                        ),
-                        "type": (
-                            "temporal_overlap"
-                        ),
-                        "source": left["id"],
-                        "target": right["id"],
-                        "overlap_start": (
-                            overlap_start
-                        ),
-                        "overlap_end": (
-                            overlap_end
-                        ),
-                        "supports_causation": False,
-                        "source_basis": (
-                            "deterministic_temporal_analysis"
-                        ),
-                    }
-                )
-
-    return relationships
-
-
-# =============================================================================
-# TIMELINE
-# =============================================================================
-
-def _build_timeline(
-    anomalies: list[dict],
-) -> list[dict]:
-
-    timeline: list[dict] = []
-
-    for anomaly in anomalies:
-
-        first = anomaly.get(
-            "first_detected"
-        )
-
-        last = anomaly.get(
-            "last_detected"
-        )
-
-        if first is not None:
-
-            timeline.append(
-                {
-                    "timestamp": first,
-                    "event_type": "anomaly_start",
-                    "event_id": anomaly[
-                        "id"
-                    ],
-                    "severity": anomaly[
-                        "severity"
-                    ],
-                    "entity_ids": anomaly.get(
-                        "affected_entities",
-                        [],
-                    ),
-                }
-            )
-
-        if last is not None:
-
-            timeline.append(
-                {
-                    "timestamp": last,
-                    "event_type": "anomaly_end",
-                    "event_id": anomaly[
-                        "id"
-                    ],
-                    "severity": anomaly[
-                        "severity"
-                    ],
-                    "entity_ids": anomaly.get(
-                        "affected_entities",
-                        [],
-                    ),
-                }
-            )
-
-    timeline.sort(
-        key=lambda item: item[
-            "timestamp"
-        ]
+    relationships = causal.get(
+        "relationships",
+        [],
     )
 
-    return timeline
+    result = [
+        dict(item)
+        for item in relationships
+        if isinstance(item, dict)
+    ]
+
+    return _limit(
+        result,
+        MAX_RELATIONSHIPS,
+    )
 
 
 # =============================================================================
-# EVIDENCE ITEMS
+# CANDIDATE CAUSES
 # =============================================================================
 
-def _build_evidence_items(
-    anomalies: list[dict],
-    comparisons: list[dict],
-) -> list[dict]:
+def _build_candidate_causes(
+    causal: Dict[str, Any] | None,
+) -> List[Dict[str, Any]]:
+    """Include deterministic upstream candidates."""
 
-    evidence: list[dict] = []
+    if not causal:
+        return []
 
-    # -------------------------------------------------------------------------
-    # Evidence directly produced by deterministic anomaly detection.
-    # -------------------------------------------------------------------------
+    candidates = causal.get(
+        "candidate_causes",
+        [],
+    )
 
-    for anomaly in anomalies:
+    result = [
+        dict(item)
+        for item in candidates
+        if isinstance(item, dict)
+    ]
 
-        for item in anomaly.get(
-            "evidence",
-            [],
-        ):
-
-            evidence.append(
-                {
-                    **item,
-                    "anomaly_id": anomaly[
-                        "id"
-                    ],
-                    "source": (
-                        "deterministic_python_analysis"
-                    ),
-                }
-            )
-
-    # -------------------------------------------------------------------------
-    # Baseline comparisons.
-    # -------------------------------------------------------------------------
-
-    for index, comparison in enumerate(
-        comparisons,
-        start=1,
-    ):
-
-        evidence.append(
-            {
-                "evidence_id": (
-                    f"BASELINE-EVID-{index:04d}"
-                ),
-                "type": "baseline_comparison",
-                "entity": comparison[
-                    "node"
-                ],
-                "baseline_mean": comparison[
-                    "baseline_mean"
-                ],
-                "incident_mean": comparison[
-                    "incident_mean"
-                ],
-                "absolute_deviation": comparison[
-                    "absolute_deviation"
-                ],
-                "relative_deviation": comparison[
-                    "relative_deviation"
-                ],
-                "baseline_count": comparison[
-                    "baseline_count"
-                ],
-                "incident_count": comparison[
-                    "incident_count"
-                ],
-                "source": (
-                    "deterministic_python_analysis"
-                ),
-            }
-        )
-
-    return evidence
+    return _limit(
+        result,
+        MAX_CANDIDATE_CAUSES,
+    )
 
 
 # =============================================================================
@@ -490,364 +644,527 @@ def _build_evidence_items(
 # =============================================================================
 
 def _build_affected_entities(
-    statistics: dict,
-) -> list[dict]:
-
+    analysis: Dict[str, Any],
+) -> List[Dict[str, Any]]:
     """
-    Use the canonical affected_entities generated by analysis.py.
+    Build entity summaries from compact statistics.
 
-    Do not independently reconstruct entity IDs here.
+    No raw records are included.
     """
 
-    return [
-        dict(entity)
-        for entity in statistics.get(
-            "affected_entities",
-            [],
-        )
-    ]
-
-
-# =============================================================================
-# INCIDENT WINDOW
-# =============================================================================
-
-def _derive_incident_window(
-    anomalies: list[dict],
-) -> tuple[
-    float,
-    float,
-] | None:
-
-    starts = [
-        float(
-            anomaly["first_detected"]
-        )
-        for anomaly in anomalies
-        if anomaly.get(
-            "first_detected"
-        ) is not None
-    ]
-
-    ends = [
-        float(
-            anomaly["last_detected"]
-        )
-        for anomaly in anomalies
-        if anomaly.get(
-            "last_detected"
-        ) is not None
-    ]
-
-    if not starts or not ends:
-        return None
-
-    return (
-        min(starts),
-        max(ends),
+    entity_counts: Dict[
+        str,
+        Dict[str, Any],
+    ] = defaultdict(
+        lambda: {
+            "event_count": 0,
+            "event_groups": 0,
+            "alarm_occurrences": 0,
+        }
     )
 
-
-# =============================================================================
-# MAIN EVIDENCE BUILDER
-# =============================================================================
-
-def build_evidence(
-    *,
-    records: list[dict],
-    statistics: dict,
-    case_manifest: dict,
-    incident_window: tuple[
-        float,
-        float,
-    ] | None = None,
-) -> dict:
-
-    """
-    Construct the AnalysisEvidence object.
-
-    This is the deterministic Python -> NIM boundary.
-
-    IMPORTANT:
-        This function does not expose ground truth.
-
-    IMPORTANT:
-        This function does not alter the final frontend schema.
-
-    IMPORTANT:
-        The top-level AnalysisEvidence structure conforms to
-        pipeline/intermediate_schema.py.
-    """
-
-    anomalies = statistics.get(
-        "anomalies",
+    for group in analysis.get(
+        "event_groups",
         [],
+    ):
+
+        node = str(
+            group.get("node", "")
+        )
+
+        if not node:
+            continue
+
+        entity_counts[node][
+            "event_count"
+        ] += int(
+            group.get(
+                "occurrences",
+                0,
+            )
+            or 0
+        )
+
+        entity_counts[node][
+            "event_groups"
+        ] += 1
+
+    for alarm in analysis.get(
+        "alarm_stats",
+        [],
+    ):
+
+        node = str(
+            alarm.get("node", "")
+        )
+
+        if not node:
+            continue
+
+        entity_counts[node][
+            "alarm_occurrences"
+        ] += int(
+            alarm.get(
+                "occurrences",
+                0,
+            )
+            or 0
+        )
+
+    result: List[
+        Dict[str, Any]
+    ] = []
+
+    for node, stats in entity_counts.items():
+
+        result.append(
+            {
+                "id": node,
+                "type": "signal",
+                **stats,
+            }
+        )
+
+    result.sort(
+        key=lambda item: (
+            -int(
+                item.get(
+                    "event_count",
+                    0,
+                )
+            ),
+            str(
+                item.get(
+                    "id",
+                    "",
+                )
+            ),
+        )
     )
 
+    return _limit(
+        result,
+        MAX_AFFECTED_ENTITIES,
+    )
+
+
+# =============================================================================
+# COMPACT EVIDENCE ITEMS
+# =============================================================================
+
+def _build_evidence_items(
+    analysis: Dict[str, Any],
+    event_groups: List[Dict[str, Any]],
+    relationships: List[Dict[str, Any]],
+    changes: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """
+    Construct a small collection of high-value evidence items.
+
+    Each item should communicate one analytical fact.
+
+    Repetition is avoided by referencing IDs.
+    """
+
+    evidence: List[
+        Dict[str, Any]
+    ] = []
+
     # -------------------------------------------------------------------------
-    # Incident window
+    # Event-group evidence.
     # -------------------------------------------------------------------------
 
-    if incident_window is None:
+    for group in event_groups:
 
-        incident_window = (
-            _derive_incident_window(
-                anomalies
+        occurrences = int(
+            group.get(
+                "occurrences",
+                0,
+            )
+            or 0
+        )
+
+        if occurrences <= 0:
+            continue
+
+        evidence.append(
+            {
+                "type": "EVENT_GROUP",
+                "group_id": group.get(
+                    "id"
+                ),
+                "event_id": group.get(
+                    "event_id"
+                ),
+                "node": group.get(
+                    "node"
+                ),
+                "pattern": group.get(
+                    "pattern"
+                ),
+                "occurrences": occurrences,
+                "first_seen": group.get(
+                    "first_seen"
+                ),
+                "last_seen": group.get(
+                    "last_seen"
+                ),
+            }
+        )
+
+    # -------------------------------------------------------------------------
+    # Relationship evidence.
+    # -------------------------------------------------------------------------
+
+    for relationship in relationships:
+
+        relationship_type = (
+            relationship.get(
+                "relationship"
             )
         )
 
+        if relationship_type not in {
+            "TEMPORAL_PRECEDENCE",
+            "CO_OCCURRENCE",
+        }:
+            continue
+
+        item = {
+            "type": "RELATIONSHIP",
+            "source": relationship.get(
+                "source"
+            ),
+            "target": relationship.get(
+                "target"
+            ),
+            "relationship": (
+                relationship_type
+            ),
+        }
+
+        if "lag" in relationship:
+            item["lag"] = relationship[
+                "lag"
+            ]
+
+        if "overlap_duration" in relationship:
+            item[
+                "overlap_duration"
+            ] = relationship[
+                "overlap_duration"
+            ]
+
+        evidence.append(item)
+
     # -------------------------------------------------------------------------
-    # Baseline comparisons
+    # Significant changes.
     # -------------------------------------------------------------------------
 
-    if incident_window is not None:
+    for change in changes:
 
-        comparisons = compare_windows(
-            records,
-            incident_window[0],
-            incident_window[1],
+        evidence.append(
+            {
+                "type": "SIGNAL_CHANGE",
+                "node": change.get(
+                    "node"
+                ),
+                "time_s": change.get(
+                    "time_s"
+                ),
+                "previous": change.get(
+                    "previous"
+                ),
+                "current": change.get(
+                    "current"
+                ),
+                "delta": change.get(
+                    "delta"
+                ),
+            }
         )
 
-    else:
-
-        comparisons = []
-
-    # -------------------------------------------------------------------------
-    # Signal inventory
-    # -------------------------------------------------------------------------
-
-    signals = _build_signal_inventory(
-        statistics
+    return _limit(
+        evidence,
+        MAX_EVIDENCE,
     )
 
-    # -------------------------------------------------------------------------
-    # Alarm events
-    # -------------------------------------------------------------------------
 
-    alarms = _build_alarm_evidence(
-        statistics
+# =============================================================================
+# PUBLIC API
+# =============================================================================
+
+def build_analysis_evidence(
+    *,
+    records: List[Dict[str, Any]],
+    analysis: Dict[str, Any],
+    causal: Dict[str, Any] | None = None,
+    case: Dict[str, Any] | None = None,
+    ground_truth_available: bool = False,
+    data_quality: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
+    """
+    Build the compact AnalysisEvidence object.
+
+    Parameters
+    ----------
+    records:
+        Normalized/resampled records. Used ONLY for determining the
+        analysis time window. Raw records are never copied into the
+        resulting evidence.
+
+    analysis:
+        Output from pipeline.analysis.compute_statistics().
+
+    causal:
+        Output from pipeline.causal.compute_causal_relationships().
+
+    case:
+        Case metadata.
+
+    ground_truth_available:
+        Whether ground-truth information exists.
+
+    data_quality:
+        Optional preprocessing quality information.
+    """
+
+    event_catalog = _build_event_catalog(
+        analysis
     )
 
-    # -------------------------------------------------------------------------
-    # Significant events
-    # -------------------------------------------------------------------------
-
-    events = _build_events(
-        records,
-        anomalies,
+    event_groups = _build_event_groups(
+        analysis
     )
 
-    # -------------------------------------------------------------------------
-    # Relationships
-    # -------------------------------------------------------------------------
+    occurrence_analysis = (
+        _build_occurrence_analysis(
+            analysis
+        )
+    )
+
+    state_transitions = (
+        _build_state_transitions(
+            analysis
+        )
+    )
+
+    significant_changes = (
+        _build_significant_changes(
+            analysis
+        )
+    )
 
     relationships = _build_relationships(
-        anomalies
+        causal
     )
 
-    # -------------------------------------------------------------------------
-    # Timeline
-    # -------------------------------------------------------------------------
-
-    timeline = _build_timeline(
-        anomalies
+    candidate_causes = (
+        _build_candidate_causes(
+            causal
+        )
     )
 
-    # -------------------------------------------------------------------------
-    # Evidence items
-    # -------------------------------------------------------------------------
-
-    evidence_items = _build_evidence_items(
-        anomalies,
-        comparisons,
+    affected_entities = (
+        _build_affected_entities(
+            analysis
+        )
     )
 
-    # -------------------------------------------------------------------------
-    # Observations
-    #
-    # Keep aggregate facts here. These are internal AnalysisEvidence
-    # facts and do not alter the frontend schema.
-    # -------------------------------------------------------------------------
-
-    total_records = statistics.get(
-        "total_records",
-        len(records),
+    evidence_items = (
+        _build_evidence_items(
+            analysis,
+            event_groups,
+            relationships,
+            significant_changes,
+        )
     )
 
-    anomaly_count = len(
-        anomalies
+    time_window = _build_time_window(
+        records
     )
 
-    normal_count = max(
-        0,
-        total_records - anomaly_count,
-    )
-
-    anomaly_rate = (
-        anomaly_count
-        / total_records
-        * 100.0
-        if total_records
-        else 0.0
-    )
-
-    observations = {
-        "total_records": total_records,
-        "variables": len(
-            statistics.get(
+    compact_analysis: Dict[
+        str,
+        Any,
+    ] = {
+        "record_count": analysis.get(
+            "total_records",
+            len(records),
+        ),
+        "unique_nodes": len(
+            analysis.get(
                 "unique_nodes",
                 [],
             )
         ),
-        "numeric_variables": len(
-            statistics.get(
-                "numeric",
-                {},
-            )
+        "event_definitions": len(
+            event_catalog
         ),
-        "categorical_variables": len(
-            statistics.get(
-                "categorical",
-                {},
-            )
+        "event_groups": len(
+            event_groups
         ),
-        "alarm_variables": len(
-            statistics.get(
-                "alarms",
-                [],
-            )
+        "relationship_count": len(
+            relationships
         ),
-        "normal_observations": normal_count,
-        "anomalous_observations": anomaly_count,
-        "anomaly_rate": anomaly_rate,
+        "candidate_cause_count": len(
+            candidate_causes
+        ),
+        "significant_change_count": len(
+            significant_changes
+        ),
     }
 
-    # -------------------------------------------------------------------------
-    # Additional deterministic facts
-    # -------------------------------------------------------------------------
+    evidence: Dict[str, Any] = {
+        "case": _build_case(
+            case
+        ),
 
-    trends = statistics.get(
-        "trends",
-        {
-            "event_rate": [],
-            "anomaly_rate": [],
-        },
-    )
+        "time_window": time_window,
 
-    # -------------------------------------------------------------------------
-    # Final AnalysisEvidence
-    # -------------------------------------------------------------------------
-
-    evidence = {
-        "case": {
-            "dataset": "causRCA",
-            "case_type": case_manifest.get(
-                "case_type"
+        "observations": {
+            "record_count": analysis.get(
+                "total_records",
+                len(records),
             ),
-            "family": case_manifest.get(
-                "family"
+            "unique_nodes": analysis.get(
+                "unique_nodes",
+                [],
             ),
-            "experiment_id": case_manifest.get(
-                "experiment_id"
-            ),
-            "run_id": case_manifest.get(
-                "run_id"
-            ),
-            "source_file": case_manifest.get(
-                "csv_path"
-            ),
+            "analysis": compact_analysis,
         },
 
-        "time_window": {
-            "start": statistics[
-                "time_span"
-            ]["start"],
-            "end": statistics[
-                "time_span"
-            ]["end"],
-        },
+        # ------------------------------------------------------------------
+        # Compact analytical representation.
+        # ------------------------------------------------------------------
 
-        "observations": observations,
+        "signals": _build_signals(
+            analysis
+        ),
 
-        "signals": signals,
+        "alarms": _limit(
+            [
+                dict(item)
+                for item in analysis.get(
+                    "alarm_stats",
+                    [],
+                )
+                if isinstance(item, dict)
+            ],
+            MAX_SIGNALS,
+        ),
 
-        "alarms": alarms,
-
-        # MUST remain an ARRAY because this is required by
-        # intermediate_schema.py.
-        "events": events,
+        "events": event_groups,
 
         "relationships": relationships,
 
-        "affected_entities": (
-            _build_affected_entities(
-                statistics
-            )
-        ),
+        "affected_entities": affected_entities,
 
-        "timeline": timeline,
+        "timeline": _limit(
+            [
+                {
+                    "group_id": group.get(
+                        "id"
+                    ),
+                    "first_seen": group.get(
+                        "first_seen"
+                    ),
+                    "last_seen": group.get(
+                        "last_seen"
+                    ),
+                    "occurrences": group.get(
+                        "occurrences"
+                    ),
+                }
+                for group in event_groups
+            ],
+            MAX_EVENT_GROUPS,
+        ),
 
         "evidence": evidence_items,
 
-        # These additional fields are intentionally allowed by the
-        # current AnalysisEvidence validator. They provide NIM with
-        # deterministic aggregate context without modifying the
-        # required contract.
-        "trends": trends,
+        # ------------------------------------------------------------------
+        # Additional compact RCA context.
+        # ------------------------------------------------------------------
 
-        "numeric_statistics": statistics.get(
-            "numeric",
-            {},
+        "event_catalog": event_catalog,
+
+        "occurrence_analysis": (
+            occurrence_analysis
         ),
 
-        "categorical_statistics": statistics.get(
-            "categorical",
-            {},
+        "state_transitions": (
+            state_transitions
         ),
 
-        "anomalies": anomalies,
-
-        "baseline_comparisons": comparisons,
-
-        "severity_counts": _severity_counts(
-            anomalies
+        "significant_changes": (
+            significant_changes
         ),
 
-        # Ground truth is deliberately unavailable to the inference model.
-        "ground_truth_available": False,
-    }
+        "candidate_causes": candidate_causes,
 
-    return evidence
+        "trends": {
+            "time_window": time_window,
+            "event_groups": len(
+                event_groups
+            ),
+        },
 
+        "numeric_statistics": {
+            str(node): dict(stats)
+            for node, stats in analysis.get(
+                "numeric_stats",
+                {},
+            ).items()
+        },
 
-# =============================================================================
-# SEVERITY COUNTS
-# =============================================================================
+        "categorical_statistics": {},
 
-def _severity_counts(
-    anomalies: list[dict],
-) -> dict[str, int]:
+        "anomalies": [],
 
-    counts = {
-        "CRITICAL": 0,
-        "HIGH": 0,
-        "MEDIUM": 0,
-        "LOW": 0,
-    }
+        "baseline_comparisons": [],
 
-    for anomaly in anomalies:
+        "severity_counts": {},
 
-        severity = str(
-            anomaly.get(
-                "severity",
-                "LOW",
+        "ground_truth_available": (
+            bool(
+                ground_truth_available
             )
-        ).upper()
+        ),
 
-        if severity in counts:
+        "data_quality": (
+            data_quality
+            if data_quality is not None
+            else {}
+        ),
+    }
 
-            counts[
-                severity
-            ] += 1
+    return _clean(
+        evidence
+    )
 
-    return counts
+
+# =============================================================================
+# COMPATIBILITY ALIAS
+# =============================================================================
+
+def build_evidence(
+    *args: Any,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """
+    Compatibility wrapper.
+
+    Existing code can continue calling build_evidence().
+    """
+
+    return build_analysis_evidence(
+        *args,
+        **kwargs,
+    )
+
+
+__all__ = [
+    "build_analysis_evidence",
+    "build_evidence",
+]

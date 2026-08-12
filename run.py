@@ -8,7 +8,9 @@ from pathlib import Path
 import requests
 
 from inference_client import call_inference_model
+
 from pipeline.analysis import compute_statistics
+from pipeline.causal import compute_causal_relationships
 from pipeline.config import (
     OUTPUT_ROOT,
     PROMPT_ROOT,
@@ -20,23 +22,21 @@ from pipeline.discover import (
     get_case,
     print_cases,
 )
-from pipeline.evidence import build_evidence
+from pipeline.evidence import build_analysis_evidence
 from pipeline.loader import load_csv
 from pipeline.normalize import normalize_records
 from pipeline.resample import resample_records
 from pipeline.validate import validate_analysis_evidence
+
+# =============================================================================
+# JSON
+# =============================================================================
 
 
 def save_json(
     path: Path,
     data: dict,
 ) -> None:
-    """
-    Save a dictionary as strict JSON.
-
-    allow_nan=False prevents invalid JSON values such as
-    NaN and Infinity from silently being written.
-    """
 
     path.parent.mkdir(
         parents=True,
@@ -47,45 +47,39 @@ def save_json(
         json.dumps(
             data,
             indent=2,
+            ensure_ascii=False,
             allow_nan=False,
         ),
         encoding="utf-8",
     )
 
 
+# =============================================================================
+# WEBSITE
+# =============================================================================
+
+
 def post_to_website(
     result: dict,
 ) -> None:
-    """
-    POST the final RCA JSON to the configured website endpoint.
 
-    This is intentionally optional. If no endpoint is configured,
-    the pipeline simply keeps the locally saved RCA result.
-    """
-
-    endpoint = os.getenv(
-        "WEBSITE_RCA_ENDPOINT"
-    )
+    endpoint = os.getenv("WEBSITE_RCA_ENDPOINT")
 
     if not endpoint:
-        print(
-            "WEBSITE_RCA_ENDPOINT not set. "
-            "Skipping website POST."
-        )
+
+        print("WEBSITE_RCA_ENDPOINT not set. " "Skipping website POST.")
+
         return
 
     headers = {
         "Content-Type": "application/json",
     }
 
-    website_token = os.getenv(
-        "WEBSITE_API_KEY"
-    )
+    token = os.getenv("WEBSITE_API_KEY")
 
-    if website_token:
-        headers["Authorization"] = (
-            f"Bearer {website_token}"
-        )
+    if token:
+
+        headers["Authorization"] = f"Bearer {token}"
 
     response = requests.post(
         endpoint,
@@ -96,46 +90,40 @@ def post_to_website(
 
     response.raise_for_status()
 
-    print(
-        f"Website POST successful: "
-        f"{response.status_code}"
-    )
+    print(f"Website POST successful: " f"{response.status_code}")
+
+
+# =============================================================================
+# MAIN
+# =============================================================================
 
 
 def main() -> None:
 
     parser = argparse.ArgumentParser(
-        description=(
-            "Run the causRCA Industrial Equipment "
-            "Root-Cause Analysis pipeline."
-        )
+        description=("Run the causRCA root-cause " "analysis pipeline.")
     )
 
     parser.add_argument(
         "--case",
         type=int,
         default=0,
-        help=(
-            "Index of the causRCA case to analyze. "
-            "Use --list-cases to see available cases."
-        ),
+        help=("Index of the causRCA case " "to analyze."),
     )
 
     parser.add_argument(
         "--list-cases",
         action="store_true",
-        help=(
-            "List all discovered causRCA cases "
-            "and exit."
-        ),
+        help="List discovered cases and exit.",
     )
 
     parser.add_argument(
         "--no-inference",
         action="store_true",
         help=(
-            "Run only the deterministic Python pipeline. "
-            "Do not call the inference model."
+            "Run the Python preprocessing and "
+            "analysis pipeline without calling "
+            "the inference model."
         ),
     )
 
@@ -143,37 +131,35 @@ def main() -> None:
         "--no-post",
         action="store_true",
         help=(
-            "Do not POST the final RCA JSON "
+            "Run inference and save the final "
+            "RCA JSON, but do not post it "
             "to the website."
         ),
     )
 
     args = parser.parse_args()
 
-    # =========================================================
+    # =========================================================================
     # INITIALIZATION
-    # =========================================================
+    # =========================================================================
 
     ensure_directories()
-
     print_config()
 
-    # =========================================================
-    # 1. DISCOVER
-    # =========================================================
+    # =========================================================================
+    # 1. DISCOVERY
+    # =========================================================================
 
-    print(
-        "\n[1/8] Discovering causRCA cases..."
-    )
+    print("\n[1/8] Discovering causRCA cases...")
 
     cases = discover_cases()
 
-    print(
-        f"Discovered {len(cases)} cases."
-    )
+    print(f"Discovered {len(cases)} cases.")
 
     if args.list_cases:
+
         print_cases(cases)
+
         return
 
     case = get_case(
@@ -181,298 +167,226 @@ def main() -> None:
         args.case,
     )
 
-    print(
-        f"Selected: {case.csv_path}"
-    )
+    print(f"Selected: {case.csv_path}")
 
-    # =========================================================
+    # =========================================================================
     # 2. LOAD
-    # =========================================================
+    # =========================================================================
 
-    print(
-        "\n[2/8] Loading data..."
-    )
+    print("\n[2/8] Loading data...")
 
-    # causRCA stores the variable type directly in each CSV row:
-    #
-    #     time_s,node,value,type
-    #
-    # Therefore there is NO dependency on an external
-    # categorical_encoding.json file.
+    raw_records = load_csv(case.csv_path)
 
-    raw_records = load_csv(
-        case.csv_path
-    )
+    print(f"Loaded {len(raw_records)} raw records.")
 
-    print(
-        f"Loaded {len(raw_records)} raw records."
-    )
-
-    # =========================================================
+    # =========================================================================
     # 3. NORMALIZE
-    # =========================================================
+    # =========================================================================
 
-    print(
-        "\n[3/8] Normalizing..."
-    )
+    print("\n[3/8] Normalizing...")
 
-    normalized, issues = normalize_records(
-        raw_records,
-    )
+    normalized, issues = normalize_records(raw_records)
 
-    print(
-        f"Normalized records: "
-        f"{len(normalized)}"
-    )
+    print(f"Normalized records: " f"{len(normalized)}")
 
-    print(
-        f"Normalization issues: "
-        f"{len(issues)}"
-    )
-
-    if issues:
-        print(
-            "Warning: some records could not be normalized."
-        )
-
-        # Show only the first few issues so a large dataset
-        # does not flood the terminal.
-        for issue in issues[:5]:
-            print(
-                f"  Row {issue.row_index}: "
-                f"{issue.error}"
-            )
-
-        if len(issues) > 5:
-            print(
-                f"  ... and "
-                f"{len(issues) - 5} more issues."
-            )
+    print(f"Normalization issues: " f"{len(issues)}")
 
     if not normalized:
-        raise RuntimeError(
-            "No valid records remained "
-            "after normalization."
-        )
 
-    # =========================================================
+        raise RuntimeError("No valid records remained " "after normalization.")
+
+    # =========================================================================
     # 4. RESAMPLE
-    # =========================================================
+    # =========================================================================
 
-    print(
-        "\n[4/8] Resampling..."
-    )
+    print("\n[4/8] Resampling...")
 
-    resampled = resample_records(
-        normalized
-    )
+    resampled = resample_records(normalized)
 
-    print(
-        f"Resampled records: "
-        f"{len(resampled)}"
-    )
+    print(f"Resampled records: " f"{len(resampled)}")
 
     if not resampled:
-        raise RuntimeError(
-            "Resampling produced no records."
-        )
 
-    # =========================================================
-    # 5. ANALYSIS
-    # =========================================================
+        raise RuntimeError("Resampling produced no records.")
 
-    print(
-        "\n[5/8] Running deterministic analysis..."
+    # =========================================================================
+    # 5. DETERMINISTIC ANALYSIS
+    # =========================================================================
+
+    print("\n[5/8] Running deterministic analysis...")
+
+    analysis = compute_statistics(resampled)
+
+    unique_nodes = analysis.get(
+        "unique_nodes",
+        [],
     )
 
-    statistics = compute_statistics(
-        resampled
+    numeric_stats = analysis.get(
+        "numeric_stats",
+        {},
     )
 
-    print(
-        f"Unique variables: "
-        f"{len(statistics['unique_nodes'])}"
+    alarm_stats = analysis.get(
+        "alarm_stats",
+        [],
     )
 
-    print(
-        f"Numeric variables: "
-        f"{len(statistics['numeric'])}"
+    event_catalog = analysis.get(
+        "event_catalog",
+        [],
     )
 
-    print(
-        f"Categorical variables: "
-        f"{len(statistics['categorical'])}"
+    event_groups = analysis.get(
+        "event_groups",
+        [],
     )
 
-    print(
-        f"Alarm variables with events: "
-        f"{len(statistics['alarms'])}"
+    print(f"Unique variables: " f"{len(unique_nodes)}")
+
+    print(f"Numeric variables: " f"{len(numeric_stats)}")
+
+    print(f"Alarm variables with events: " f"{len(alarm_stats)}")
+
+    print(f"Unique event definitions: " f"{len(event_catalog)}")
+
+    print(f"Event groups: " f"{len(event_groups)}")
+
+    # =========================================================================
+    # CAUSAL ANALYSIS
+    # =========================================================================
+
+    print("\n    Building causal relationships...")
+
+    causal = compute_causal_relationships(analysis)
+
+    relationships = causal.get(
+        "relationships",
+        [],
     )
 
-    # =========================================================
-    # 6. BUILD AND VALIDATE EVIDENCE
-    # =========================================================
-
-    print(
-        "\n[6/8] Building AnalysisEvidence..."
+    candidate_causes = causal.get(
+        "candidate_causes",
+        [],
     )
 
-    evidence = build_evidence(
+    print(f"Relationships: " f"{len(relationships)}")
+
+    print(f"Candidate upstream causes: " f"{len(candidate_causes)}")
+
+    # =========================================================================
+    # 6. COMPACT EVIDENCE
+    # =========================================================================
+
+    print("\n[6/8] Building compact AnalysisEvidence...")
+
+    if hasattr(
+        case,
+        "to_dict",
+    ):
+
+        case_manifest = case.to_dict()
+
+    else:
+
+        case_manifest = {
+            "id": Path(case.csv_path).stem,
+            "source": "causRCA",
+            "path": str(case.csv_path),
+        }
+
+    evidence = build_analysis_evidence(
         records=resampled,
-        statistics=statistics,
-        case_manifest=case.to_dict(),
+        analysis=analysis,
+        causal=causal,
+        case=case_manifest,
+        ground_truth_available=False,
+        data_quality={
+            "raw_records": len(raw_records),
+            "normalized_records": len(normalized),
+            "resampled_records": len(resampled),
+            "normalization_issues": len(issues),
+        },
     )
 
-    # Attach deterministic data-quality information.
-    evidence["data_quality"] = {
-        "raw_records": len(raw_records),
-        "normalized_records": len(normalized),
-        "resampled_records": len(resampled),
-        "normalization_issues": len(issues),
-    }
+    # Validate compact intermediate format.
+    evidence = validate_analysis_evidence(evidence)
 
-    # Ground truth must NOT be exposed to the LLM.
-    #
-    # It may exist in the dataset and may later be used for
-    # evaluation, but the inference input remains blind.
-    evidence[
-        "ground_truth_available"
-    ] = False
+    case_name = Path(case.csv_path).stem
 
-    # Validate the complete intermediate contract before
-    # anything is sent to the cloud model.
-    evidence = validate_analysis_evidence(
-        evidence
-    )
-
-    # ---------------------------------------------------------
-    # Save deterministic intermediate output
-    # ---------------------------------------------------------
-
-    case_name = Path(
-        case.csv_path
-    ).stem
-
-    intermediate_path = (
-        OUTPUT_ROOT
-        / "intermediate"
-        / f"{case_name}.json"
-    )
+    intermediate_path = OUTPUT_ROOT / "intermediate" / f"{case_name}.json"
 
     save_json(
         intermediate_path,
         evidence,
     )
 
-    print(
-        f"Evidence saved to: "
-        f"{intermediate_path}"
-    )
+    print(f"Compact evidence saved to: " f"{intermediate_path}")
 
-    # =========================================================
-    # INFERENCE DISABLED
-    # =========================================================
+    print(f"Compact evidence size: " f"{intermediate_path.stat().st_size:,} bytes")
+
+    # =========================================================================
+    # STOP BEFORE MODEL
+    # =========================================================================
 
     if args.no_inference:
 
-        print(
-            "\nInference step disabled."
-        )
+        print("\nInference model disabled.")
 
-        print(
-            "Deterministic Python pipeline "
-            "completed successfully."
-        )
+        print("Deterministic Python pipeline " "completed successfully.")
 
-        print(
-            f"Intermediate output: "
-            f"{intermediate_path}"
-        )
+        print(f"Intermediate output: " f"{intermediate_path}")
 
         return
 
-    # =========================================================
+    # =========================================================================
     # 7. INFERENCE
-    # =========================================================
+    # =========================================================================
 
-    print(
-        "\n[7/8] Sending evidence to inference model..."
-    )
+    print("\n[7/8] Sending compact evidence " "to inference model...")
 
     result = call_inference_model(
         evidence=evidence,
-
-        system_prompt_path=(
-            PROMPT_ROOT
-            / "system_prompt.txt"
-        ),
-
-        output_example_path=(
-            PROMPT_ROOT
-            / "output_example.json"
-        ),
+        system_prompt_path=(PROMPT_ROOT / "system_prompt.txt"),
+        output_example_path=(PROMPT_ROOT / "output_example.json"),
     )
 
-    # ---------------------------------------------------------
-    # Save final RCA JSON locally
-    # ---------------------------------------------------------
+    # =========================================================================
+    # SAVE FINAL OUTPUT
+    # =========================================================================
 
-    rca_path = (
-        OUTPUT_ROOT
-        / "rca"
-        / f"{case_name}.json"
-    )
+    rca_path = OUTPUT_ROOT / "rca" / f"{case_name}.json"
 
     save_json(
         rca_path,
         result,
     )
 
-    print(
-        f"RCA JSON saved to: "
-        f"{rca_path}"
-    )
+    print(f"RCA JSON saved to: " f"{rca_path}")
 
-    # =========================================================
-    # WEBSITE POST
-    # =========================================================
+    # =========================================================================
+    # STOP BEFORE WEBSITE
+    # =========================================================================
 
     if args.no_post:
 
-        print(
-            "\nWebsite POST disabled."
-        )
+        print("\nWebsite POST disabled.")
 
-        print(
-            "Final RCA JSON remains available at:"
-        )
-
-        print(
-            f"  {rca_path}"
-        )
+        print(f"Final RCA output: " f"{rca_path}")
 
         return
 
-    # =========================================================
+    # =========================================================================
     # 8. WEBSITE
-    # =========================================================
+    # =========================================================================
 
-    print(
-        "\n[8/8] Posting RCA JSON to website..."
-    )
+    print("\n[8/8] Posting RCA JSON to website...")
 
-    post_to_website(
-        result
-    )
+    post_to_website(result)
 
-    print(
-        "\nPipeline completed successfully."
-    )
+    print("\nPipeline completed successfully.")
 
-    print(
-        f"Final RCA output: "
-        f"{rca_path}"
-    )
+    print(f"Final RCA output: " f"{rca_path}")
 
 
 if __name__ == "__main__":

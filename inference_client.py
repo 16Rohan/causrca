@@ -9,12 +9,13 @@ from typing import Any
 import requests
 from dotenv import load_dotenv
 
-
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
 ROOT = Path(__file__).resolve().parent
+
+# Always load the project's .env.
 load_dotenv(ROOT / ".env")
 
 DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1"
@@ -27,38 +28,44 @@ DEFAULT_TIMEOUT = 600
 # EXCEPTIONS
 # =============================================================================
 
+
 class InferenceError(RuntimeError):
-    pass
+    """Base inference error."""
 
 
 class InferenceConfigurationError(InferenceError):
-    pass
+    """Invalid inference configuration."""
 
 
 class InferenceRequestError(InferenceError):
-    pass
+    """HTTP/API request failure."""
 
 
 class InferenceResponseError(InferenceError):
-    pass
+    """Invalid model response."""
 
 
 class SchemaValidationError(InferenceResponseError):
-    pass
+    """Model output violates the fixed output contract."""
 
 
 # =============================================================================
 # ENVIRONMENT
 # =============================================================================
 
+
 def _env(
     name: str,
     default: str | None = None,
 ) -> str:
 
-    value = os.getenv(name, default)
+    value = os.getenv(
+        name,
+        default,
+    )
 
     if value is None or not value.strip():
+
         raise InferenceConfigurationError(
             f"Missing required environment variable: {name}"
         )
@@ -77,11 +84,15 @@ def _int_env(
         return default
 
     try:
-        return int(raw)
+        value = int(raw)
+
     except ValueError as exc:
+
         raise InferenceConfigurationError(
             f"{name} must be an integer: {raw!r}"
         ) from exc
+
+    return value
 
 
 def _float_env(
@@ -96,10 +107,10 @@ def _float_env(
 
     try:
         return float(raw)
+
     except ValueError as exc:
-        raise InferenceConfigurationError(
-            f"{name} must be numeric: {raw!r}"
-        ) from exc
+
+        raise InferenceConfigurationError(f"{name} must be numeric: {raw!r}") from exc
 
 
 def _bool_env(
@@ -114,15 +125,23 @@ def _bool_env(
 
     value = raw.strip().lower()
 
-    if value in {"1", "true", "yes", "on"}:
+    if value in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
         return True
 
-    if value in {"0", "false", "no", "off"}:
+    if value in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }:
         return False
 
-    raise InferenceConfigurationError(
-        f"{name} must be true/false: {raw!r}"
-    )
+    raise InferenceConfigurationError(f"{name} must be true/false: {raw!r}")
 
 
 def get_inference_config() -> dict[str, Any]:
@@ -133,9 +152,8 @@ def get_inference_config() -> dict[str, Any]:
     )
 
     if max_tokens < 1:
-        raise InferenceConfigurationError(
-            "MAX_TOKENS must be >= 1."
-        )
+
+        raise InferenceConfigurationError("MAX_TOKENS must be >= 1.")
 
     timeout = _int_env(
         "TIMEOUT",
@@ -143,9 +161,17 @@ def get_inference_config() -> dict[str, Any]:
     )
 
     if timeout < 1:
-        raise InferenceConfigurationError(
-            "TIMEOUT must be >= 1."
-        )
+
+        raise InferenceConfigurationError("TIMEOUT must be >= 1.")
+
+    temperature = _float_env(
+        "TEMPERATURE",
+        DEFAULT_TEMPERATURE,
+    )
+
+    if not 0 <= temperature <= 2:
+
+        raise InferenceConfigurationError("TEMPERATURE must be between 0 and 2.")
 
     return {
         "api_key": _env("MODEL_API_KEY"),
@@ -153,11 +179,10 @@ def get_inference_config() -> dict[str, Any]:
         "base_url": os.getenv(
             "BASE_URL",
             DEFAULT_BASE_URL,
-        ).strip().rstrip("/"),
-        "temperature": _float_env(
-            "TEMPERATURE",
-            DEFAULT_TEMPERATURE,
-        ),
+        )
+        .strip()
+        .rstrip("/"),
+        "temperature": temperature,
         "max_tokens": max_tokens,
         "timeout": timeout,
         "json_mode": _bool_env(
@@ -171,6 +196,7 @@ def get_inference_config() -> dict[str, Any]:
 # FILE HELPERS
 # =============================================================================
 
+
 def _read_text(
     path: str | Path,
 ) -> str:
@@ -178,13 +204,10 @@ def _read_text(
     path = Path(path)
 
     if not path.exists():
-        raise FileNotFoundError(
-            f"File not found: {path}"
-        )
 
-    return path.read_text(
-        encoding="utf-8"
-    )
+        raise FileNotFoundError(f"File not found: {path}")
+
+    return path.read_text(encoding="utf-8")
 
 
 def _read_json(
@@ -194,17 +217,15 @@ def _read_json(
     path = Path(path)
 
     if not path.exists():
-        raise FileNotFoundError(
-            f"JSON file not found: {path}"
-        )
+
+        raise FileNotFoundError(f"JSON file not found: {path}")
 
     try:
-        return json.loads(
-            path.read_text(
-                encoding="utf-8"
-            )
-        )
+
+        return json.loads(path.read_text(encoding="utf-8"))
+
     except json.JSONDecodeError as exc:
+
         raise ValueError(
             f"Invalid JSON: {path}: "
             f"{exc.msg} "
@@ -216,55 +237,93 @@ def _read_json(
 # FIXED OUTPUT CONTRACT VALIDATION
 # =============================================================================
 
-def _is_number(
-    value: Any,
-) -> bool:
 
-    return (
-        isinstance(value, (int, float))
-        and not isinstance(value, bool)
-    )
+# =============================================================================
+# FIXED OUTPUT CONTRACT VALIDATION
+# =============================================================================
 
 
-def _matches(
+def _is_number(value: Any) -> bool:
+    """
+    JSON numeric type.
+
+    int and float are intentionally treated as the same
+    JSON type: number.
+    """
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _type_name(value: Any) -> str:
+
+    if value is None:
+        return "null"
+
+    if isinstance(value, bool):
+        return "boolean"
+
+    if _is_number(value):
+        return "number"
+
+    if isinstance(value, str):
+        return "string"
+
+    if isinstance(value, list):
+        return "array"
+
+    if isinstance(value, dict):
+        return "object"
+
+    return type(value).__name__
+
+
+def _expected_type_name(value: Any) -> str:
+
+    if value is None:
+        return "null"
+
+    if isinstance(value, bool):
+        return "boolean"
+
+    if _is_number(value):
+        return "number"
+
+    if isinstance(value, str):
+        return "string"
+
+    if isinstance(value, list):
+        return "array"
+
+    if isinstance(value, dict):
+        return "object"
+
+    return type(value).__name__
+
+
+def _matches_type(
     actual: Any,
     expected: Any,
 ) -> bool:
-    """
-    Match the JSON contract semantically.
 
-    Important:
-        JSON has one numeric value family for our purposes.
-
-        1820
-        1820.0
-        1820.5
-
-    are all valid numeric values.
-
-    The example file defines the structure and
-    semantic value categories, not arbitrary
-    integer/float restrictions.
-    """
-
-    # Objects.
+    # Object.
     if isinstance(expected, dict):
         return isinstance(actual, dict)
 
-    # Arrays.
+    # Array.
     if isinstance(expected, list):
         return isinstance(actual, list)
 
-    # Booleans must be checked before numbers because
-    # bool is a subclass of int in Python.
+    # Boolean.
     if isinstance(expected, bool):
         return isinstance(actual, bool)
 
-    # Numeric values.
+    # JSON number.
+    #
+    # IMPORTANT:
+    # 123 and 123.0 are both valid JSON numbers.
     if _is_number(expected):
         return _is_number(actual)
 
-    # Strings.
+    # String.
     if isinstance(expected, str):
         return isinstance(actual, str)
 
@@ -275,103 +334,56 @@ def _matches(
     return type(actual) is type(expected)
 
 
-def _type_name(
-    value: Any,
-) -> str:
-
-    if value is None:
-        return "null"
-
-    if isinstance(value, bool):
-        return "boolean"
-
-    if _is_number(value):
-        return "number"
-
-    if isinstance(value, str):
-        return "string"
-
-    if isinstance(value, list):
-        return "array"
-
-    if isinstance(value, dict):
-        return "object"
-
-    return type(value).__name__
-
-
-def _expected_name(
-    value: Any,
-) -> str:
-
-    if value is None:
-        return "null"
-
-    if isinstance(value, bool):
-        return "boolean"
-
-    if _is_number(value):
-        return "number"
-
-    if isinstance(value, str):
-        return "string"
-
-    if isinstance(value, list):
-        return "array"
-
-    if isinstance(value, dict):
-        return "object"
-
-    return type(value).__name__
-
-
-def _validate(
+def _validate_contract(
     actual: Any,
-    expected: Any,
+    template: Any,
     path: str,
     errors: list[str],
 ) -> None:
 
-    if not _matches(
+    # -------------------------------------------------------------------------
+    # TYPE
+    # -------------------------------------------------------------------------
+
+    if not _matches_type(
         actual,
-        expected,
+        template,
     ):
+
         errors.append(
             f"{path}: expected "
-            f"{_expected_name(expected)}, "
+            f"{_expected_type_name(template)}, "
             f"received {_type_name(actual)}"
         )
+
         return
 
     # -------------------------------------------------------------------------
-    # Object
+    # OBJECT
     # -------------------------------------------------------------------------
 
-    if isinstance(expected, dict):
+    if isinstance(template, dict):
 
-        actual_keys = set(actual)
-        expected_keys = set(expected)
+        template_keys = set(template.keys())
 
-        for key in sorted(
-            expected_keys - actual_keys
-        ):
-            errors.append(
-                f"{path}.{key}: missing required key"
-            )
+        actual_keys = set(actual.keys())
 
-        for key in sorted(
-            actual_keys - expected_keys
-        ):
-            errors.append(
-                f"{path}.{key}: unexpected key"
-            )
+        # Missing required keys.
+        for key in sorted(template_keys - actual_keys):
 
-        for key in sorted(
-            expected_keys & actual_keys
-        ):
-            _validate(
+            errors.append(f"{path}.{key}: " "missing required key")
+
+        # Unexpected keys.
+        for key in sorted(actual_keys - template_keys):
+
+            errors.append(f"{path}.{key}: " "unexpected key")
+
+        # Recursively validate shared keys.
+        for key in sorted(template_keys & actual_keys):
+
+            _validate_contract(
                 actual[key],
-                expected[key],
+                template[key],
                 f"{path}.{key}",
                 errors,
             )
@@ -379,37 +391,88 @@ def _validate(
         return
 
     # -------------------------------------------------------------------------
-    # Array
+    # ARRAY
     # -------------------------------------------------------------------------
 
-    if isinstance(expected, list):
+    if isinstance(template, list):
 
-        # An empty array in the example means:
-        # "this value must be an array".
+        # [] means:
         #
-        # There is no item structure to validate.
-        if not expected:
+        # "This field must be an array."
+        #
+        # There is intentionally no item constraint.
+        if not template:
             return
 
-        item_schema = expected[0]
+        # A populated array in the example provides
+        # the schema for each item.
+        item_template = template[0]
 
         for index, item in enumerate(actual):
-            _validate(
+
+            _validate_contract(
                 item,
-                item_schema,
+                item_template,
                 f"{path}[{index}]",
                 errors,
             )
+
+        return
+
+    # -------------------------------------------------------------------------
+    # SCALAR
+    # -------------------------------------------------------------------------
+
+    # Scalar type validation has already happened above.
+    #
+    # DO NOT compare the actual value against the
+    # example value.
+    #
+    # For example:
+    #
+    # schema:
+    #     "health_score": 72
+    #
+    # valid output:
+    #     "health_score": 91
+    #
+    # Likewise:
+    #
+    # schema:
+    #     "id": "ANOM-001"
+    #
+    # valid output:
+    #     "id": "ANOM-037"
+    #
+    return
 
 
 def validate_output(
     result: Any,
     schema: dict,
 ) -> None:
+    """
+    Validate model output against the fixed JSON contract.
+
+    This function performs ONLY structural/type validation.
+
+    It intentionally does NOT enforce:
+        - foreign keys
+        - cross-array references
+        - ID relationships
+        - enum values
+        - numeric ranges
+        - business rules
+        - causal consistency
+        - semantic relationships
+
+    Those are analytical concerns, not properties of the
+    fixed output JSON contract.
+    """
 
     errors: list[str] = []
 
-    _validate(
+    _validate_contract(
         result,
         schema,
         "$",
@@ -421,26 +484,21 @@ def validate_output(
 
     shown = errors[:100]
 
-    message = "\n".join(
-        f"  - {error}"
-        for error in shown
-    )
+    message = "\n".join(f"  - {error}" for error in shown)
 
     if len(errors) > 100:
-        message += (
-            f"\n  - ... {len(errors) - 100} "
-            "additional errors"
-        )
+
+        message += f"\n  - ... " f"{len(errors) - 100} " "additional errors"
 
     raise SchemaValidationError(
-        "Model output failed the fixed JSON contract:\n"
-        + message
+        "Model output failed the fixed " "JSON contract:\n" + message
     )
 
 
 # =============================================================================
-# MODEL OUTPUT PARSING
+# MODEL RESPONSE PARSING
 # =============================================================================
+
 
 def _extract_json(
     text: str,
@@ -448,17 +506,15 @@ def _extract_json(
 
     text = text.strip()
 
-    # Preferred: pure JSON.
+    # Direct JSON.
     try:
+
         result = json.loads(text)
 
-        if not isinstance(
-            result,
-            dict,
-        ):
+        if not isinstance(result, dict):
+
             raise InferenceResponseError(
-                "Model returned JSON, but the root "
-                "value is not an object."
+                "Model returned JSON, but " "the root value is not an object."
             )
 
         return result
@@ -466,7 +522,7 @@ def _extract_json(
     except json.JSONDecodeError:
         pass
 
-    # Handle Markdown fences.
+    # Markdown code fence.
     fenced = re.fullmatch(
         r"```(?:json)?\s*(.*?)\s*```",
         text,
@@ -474,14 +530,14 @@ def _extract_json(
     )
 
     if fenced:
+
         text = fenced.group(1).strip()
 
     start = text.find("{")
 
     if start < 0:
-        raise InferenceResponseError(
-            "Model response contains no JSON object."
-        )
+
+        raise InferenceResponseError("Model response contains no JSON object.")
 
     depth = 0
     in_string = False
@@ -508,25 +564,27 @@ def _extract_json(
             continue
 
         if char == '"':
+
             in_string = True
 
         elif char == "{":
+
             depth += 1
 
         elif char == "}":
+
             depth -= 1
 
             if depth == 0:
 
-                candidate = text[
-                    start:index + 1
-                ]
+                candidate = text[start : index + 1]
 
                 try:
-                    result = json.loads(
-                        candidate
-                    )
+
+                    result = json.loads(candidate)
+
                 except json.JSONDecodeError as exc:
+
                     raise InferenceResponseError(
                         "Model produced malformed JSON: "
                         f"{exc.msg} "
@@ -538,16 +596,14 @@ def _extract_json(
                     result,
                     dict,
                 ):
+
                     raise InferenceResponseError(
-                        "Extracted JSON root "
-                        "is not an object."
+                        "Extracted JSON root " "is not an object."
                     )
 
                 return result
 
-    raise InferenceResponseError(
-        "Model returned an unclosed JSON object."
-    )
+    raise InferenceResponseError("Model returned an unclosed JSON object.")
 
 
 def _message_content(
@@ -555,56 +611,47 @@ def _message_content(
 ) -> str:
 
     try:
-        content = response[
-            "choices"
-        ][0][
-            "message"
-        ][
-            "content"
-        ]
+
+        content = response["choices"][0]["message"]["content"]
+
     except (
         KeyError,
         IndexError,
         TypeError,
     ) as exc:
+
         raise InferenceResponseError(
-            "Could not extract "
-            "choices[0].message.content "
-            "from model response."
+            "Could not extract " "choices[0].message.content " "from model response."
         ) from exc
 
-    if isinstance(
-        content,
-        str,
-    ):
+    if isinstance(content, str):
+
         return content
 
-    if isinstance(
-        content,
-        list,
-    ):
+    if isinstance(content, list):
 
         parts = [
             part.get("text", "")
             for part in content
-            if isinstance(part, dict)
-            and isinstance(
-                part.get("text"),
-                str,
+            if (
+                isinstance(part, dict)
+                and isinstance(
+                    part.get("text"),
+                    str,
+                )
             )
         ]
 
         if parts:
             return "".join(parts)
 
-    raise InferenceResponseError(
-        "Model returned unsupported message content."
-    )
+    raise InferenceResponseError("Model returned unsupported " "message content.")
 
 
 # =============================================================================
-# PROMPT CONSTRUCTION
+# PROMPTS
 # =============================================================================
+
 
 def _system_message(
     system_prompt: str,
@@ -618,8 +665,7 @@ def _system_message(
     )
 
     return (
-        system_prompt.rstrip()
-        + "\n\n"
+        system_prompt.rstrip() + "\n\n"
         "OUTPUT CONTRACT\n"
         "===============\n"
         "Return exactly one JSON object.\n"
@@ -630,8 +676,7 @@ def _system_message(
         "Do not return Markdown or explanatory text.\n"
         "Do not invent measurements, timestamps, "
         "entities, or statistics.\n\n"
-        "FIXED OUTPUT EXAMPLE:\n"
-        + example
+        "FIXED OUTPUT EXAMPLE:\n" + example
     )
 
 
@@ -651,22 +696,22 @@ def _user_message(
         "AnalysisEvidence.\n\n"
         "The original dataset has already been "
         "processed by the Python pipeline. "
+        "The raw dataset is NOT part of this request.\n\n"
         "Use only the information provided below.\n\n"
         "Treat measured values, timestamps, "
-        "statistics, anomaly identifiers, "
-        "entities, relationships, and evidence "
-        "as grounded facts.\n\n"
+        "statistics, event groups, entities, "
+        "relationships, and evidence as grounded facts.\n\n"
         "Root-cause explanations are hypotheses "
         "unless directly established by evidence.\n\n"
         "Return the required fixed RCA JSON.\n\n"
-        "ANALYSISEVIDENCE:\n"
-        + evidence_json
+        "ANALYSISEVIDENCE:\n" + evidence_json
     )
 
 
 # =============================================================================
-# INFERENCE MODEL REQUEST
+# INFERENCE REQUEST
 # =============================================================================
+
 
 def call_inference_model(
     *,
@@ -677,40 +722,39 @@ def call_inference_model(
 
     config = get_inference_config()
 
-    system_prompt = _read_text(
-        system_prompt_path
-    )
+    system_prompt = _read_text(system_prompt_path)
 
-    schema = _read_json(
-        output_example_path
-    )
+    schema = _read_json(output_example_path)
 
     if not isinstance(
         schema,
         dict,
     ):
-        raise InferenceConfigurationError(
-            "Output example root must be an object."
-        )
 
-    # The only data supplied to the model from the analysis
-    # pipeline is AnalysisEvidence.
+        raise InferenceConfigurationError("Output example root must be an object.")
+
+    # -------------------------------------------------------------------------
+    # Serialize the compact evidence.
     #
-    # No CSV or raw dataset is loaded here.
+    # This is the ONLY analytical payload sent to the model.
+    #
+    # There is deliberately NO token arithmetic here.
+    # -------------------------------------------------------------------------
 
-    try:
-        json.dumps(
-            evidence,
-            ensure_ascii=False,
-            allow_nan=False,
-        )
-    except (
-        TypeError,
-        ValueError,
-    ) as exc:
-        raise InferenceResponseError(
-            "AnalysisEvidence is not valid strict JSON."
-        ) from exc
+    evidence_json = json.dumps(
+        evidence,
+        ensure_ascii=False,
+        allow_nan=False,
+        separators=(",", ":"),
+    )
+
+    evidence_bytes = len(evidence_json.encode("utf-8"))
+
+    print(f"Evidence payload: " f"{evidence_bytes:,} bytes")
+
+    # -------------------------------------------------------------------------
+    # Request body.
+    # -------------------------------------------------------------------------
 
     payload: dict[str, Any] = {
         "model": config["model"],
@@ -730,32 +774,30 @@ def call_inference_model(
             },
         ],
         "temperature": config["temperature"],
-
-        # Direct configuration value.
-        # No token calculation is performed.
+        # Explicit fixed configuration.
+        #
+        # NEVER calculate this from evidence size.
         "max_tokens": config["max_tokens"],
     }
 
     if config["json_mode"]:
-        payload["response_format"] = {
-            "type": "json_object"
-        }
 
-    endpoint = (
-        config["base_url"]
-        + "/chat/completions"
-    )
+        payload["response_format"] = {"type": "json_object"}
+
+    endpoint = config["base_url"] + "/chat/completions"
 
     headers = {
-        "Authorization": (
-            "Bearer "
-            + config["api_key"]
-        ),
+        "Authorization": ("Bearer " + config["api_key"]),
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
 
+    # -------------------------------------------------------------------------
+    # Request.
+    # -------------------------------------------------------------------------
+
     try:
+
         response = requests.post(
             endpoint,
             headers=headers,
@@ -764,103 +806,111 @@ def call_inference_model(
         )
 
     except requests.Timeout as exc:
+
         raise InferenceRequestError(
-            "Inference request timed out after "
-            f"{config['timeout']} seconds."
+            "Inference request timed out " f"after {config['timeout']} seconds."
         ) from exc
 
     except requests.RequestException as exc:
-        raise InferenceRequestError(
-            f"Inference request failed: {exc}"
-        ) from exc
+
+        raise InferenceRequestError(f"Inference request failed: {exc}") from exc
+
+    # -------------------------------------------------------------------------
+    # HTTP error.
+    # -------------------------------------------------------------------------
 
     if not response.ok:
 
         body = response.text.strip()
 
         if len(body) > 4000:
+
             body = body[:4000] + "..."
 
         raise InferenceRequestError(
-            f"Inference endpoint returned HTTP "
-            f"{response.status_code}.\n{body}"
+            "Inference endpoint returned " f"HTTP {response.status_code}.\n" f"{body}"
         )
 
+    # -------------------------------------------------------------------------
+    # API response.
+    # -------------------------------------------------------------------------
+
     try:
+
         api_response = response.json()
+
     except ValueError as exc:
+
         raise InferenceResponseError(
             "Inference endpoint returned invalid API JSON."
         ) from exc
 
-    content = _message_content(
-        api_response
-    )
+    content = _message_content(api_response)
 
-    result = _extract_json(
-        content
-    )
+    result = _extract_json(content)
 
-    # Final structural contract check.
+    # -------------------------------------------------------------------------
+    # FINAL SCHEMA VALIDATION.
     #
-    # Numeric fields intentionally accept both
-    # integer and floating-point JSON numbers.
+    # This remains completely separate from the intermediate schema.
+    # prompts/output_example.json is the final contract.
+    # -------------------------------------------------------------------------
+
     validate_output(
         result,
         schema,
     )
 
-    # Strict JSON check.
+    # Final strict JSON check.
     try:
+
         json.dumps(
             result,
             ensure_ascii=False,
             allow_nan=False,
         )
+
     except (
         TypeError,
         ValueError,
     ) as exc:
-        raise SchemaValidationError(
-            "Model output is not valid strict JSON."
-        ) from exc
+
+        raise SchemaValidationError("Model output is not valid strict JSON.") from exc
 
     return result
 
 
 # =============================================================================
-# CONFIGURATION TEST
+# OPTIONAL CONFIGURATION TEST
 # =============================================================================
 
-def main() -> None:
+
+def print_configuration() -> None:
 
     config = get_inference_config()
 
-    print(
-        "Inference client configuration OK"
-    )
-    print(
-        f"Model       : {config['model']}"
-    )
-    print(
-        f"Endpoint    : {config['base_url']}"
-    )
-    print(
-        f"Temperature : {config['temperature']}"
-    )
-    print(
-        f"Max tokens  : {config['max_tokens']}"
-    )
-    print(
-        f"Timeout     : {config['timeout']}s"
-    )
-    print(
-        f"JSON mode   : {config['json_mode']}"
-    )
-    print(
-        f".env        : {ROOT / '.env'}"
-    )
+    print("Inference client configuration OK")
+
+    print(f"Model       : {config['model']}")
+
+    print(f"Endpoint    : {config['base_url']}")
+
+    print(f"Temperature : {config['temperature']}")
+
+    print(f"Max tokens  : {config['max_tokens']}")
+
+    print(f"Timeout     : {config['timeout']}s")
+
+    print(f"JSON mode   : {config['json_mode']}")
+
+    print(f".env        : {ROOT / '.env'}")
 
 
-if __name__ == "__main__":
-    main()
+# IMPORTANT:
+# There is intentionally NO:
+#
+#     if __name__ == "__main__":
+#         main()
+#
+# The inference client is a library.
+# run.py owns application execution.
