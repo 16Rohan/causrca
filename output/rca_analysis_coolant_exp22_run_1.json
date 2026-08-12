@@ -1,0 +1,327 @@
+{
+  "schema_version": "1.0",
+  "system": {
+    "id": "system-coolant-exp22",
+    "name": "Coolant System Experimental Setup",
+    "type": "industrial_equipment",
+    "source": "causRCA"
+  },
+  "analysis": {
+    "analysis_id": "analysis-coolant-exp22-run1-2026-08-12",
+    "started_at": "2026-08-12T00:00:00Z",
+    "ended_at": "2026-08-12T00:05:16Z",
+    "total_events": 18843,
+    "unique_event_templates": 54,
+    "status": "WARNING",
+    "health_score": 78
+  },
+  "summary": {
+    "normal_events": 18831,
+    "anomalous_events": 12,
+    "anomaly_rate": 0.06,
+    "critical_anomalies": 0,
+    "high_anomalies": 0,
+    "medium_anomalies": 12,
+    "low_anomalies": 0
+  },
+  "event_statistics": {
+    "severity_distribution": [
+      {
+        "level": "NORMAL",
+        "count": 18831,
+        "percentage": 99.94
+      },
+      {
+        "level": "MEDIUM",
+        "count": 12,
+        "percentage": 0.06
+      }
+    ],
+    "top_events": [
+      {
+        "event_id": "SIG_001",
+        "template": "Coolant system state transition",
+        "count": 4,
+        "percentage": 0.02
+      },
+      {
+        "event_id": "SIG_002",
+        "template": "Pump operational state change",
+        "count": 3,
+        "percentage": 0.02
+      },
+      {
+        "event_id": "SIG_003",
+        "template": "Motion control position change",
+        "count": 3,
+        "percentage": 0.02
+      }
+    ]
+  },
+  "trends": {
+    "event_rate": [
+      {
+        "timestamp": "2026-08-12T00:00:00Z",
+        "value": 377
+      },
+      {
+        "timestamp": "2026-08-12T00:01:00Z",
+        "value": 314
+      },
+      {
+        "timestamp": "2026-08-12T00:02:00Z",
+        "value": 314
+      },
+      {
+        "timestamp": "2026-08-12T00:03:00Z",
+        "value": 314
+      },
+      {
+        "timestamp": "2026-08-12T00:04:00Z",
+        "value": 314
+      },
+      {
+        "timestamp": "2026-08-12T00:05:00Z",
+        "value": 314
+      }
+    ],
+    "anomaly_rate": [
+      {
+        "timestamp": "2026-08-12T00:00:00Z",
+        "value": 0.12
+      },
+      {
+        "timestamp": "2026-08-12T00:01:00Z",
+        "value": 0.00
+      },
+      {
+        "timestamp": "2026-08-12T00:02:00Z",
+        "value": 0.00
+      },
+      {
+        "timestamp": "2026-08-12T00:03:00Z",
+        "value": 0.00
+      },
+      {
+        "timestamp": "2026-08-12T00:04:00Z",
+        "value": 0.00
+      },
+      {
+        "timestamp": "2026-08-12T00:05:00Z",
+        "value": 0.00
+      }
+    ]
+  },
+  "anomalies": [
+    {
+      "id": "ANOM-001",
+      "severity": "MEDIUM",
+      "type": "MULTIPLE_SIGNAL_TRANSITIONS",
+      "title": "Multiple coolant valve state transitions detected",
+      "description": "Observed multiple state changes in coolant bleed/control valves (CBC_* signals) during the analysis window.",
+      "first_detected": "2026-08-12T00:00:00Z",
+      "last_detected": "2026-08-12T00:05:16Z",
+      "occurrences": 4,
+      "affected_entities": [
+        "CBC_Closed",
+        "CBC_close",
+        "CBC_isOpen",
+        "CBC_open"
+      ],
+      "evidence": [
+        {
+          "metric": "state_transitions",
+          "value": 4,
+          "baseline": 0,
+          "unit": "count"
+        }
+      ],
+      "possible_causes": [
+        {
+          "cause": "Coolant system control valve cycling",
+          "confidence": 0.75
+        },
+        {
+          "cause": "Pressure regulation attempts in coolant system",
+          "confidence": 0.60
+        }
+      ],
+      "recommendations": [
+        {
+          "priority": "MEDIUM",
+          "action": "Inspect coolant control valves for proper seating and leakage"
+        },
+        {
+          "priority": "LOW",
+          "action": "Review coolant pressure sensor readings for correlation with valve transitions"
+        }
+      ],
+      "confidence": 0.70
+    },
+    {
+      "id": "ANOM-002",
+      "severity": "MEDIUM",
+      "type": "PUMP_STATE_CHANGE",
+      "title": "High pressure pump state transition observed",
+      "description": "Detected state change in high pressure pump (HP_Pump_Ok/HP_Pump_isOff signals) during analysis period.",
+      "first_detected": "2026-08-12T00:00:00Z",
+      "last_detected": "2026-08-12T00:05:16Z",
+      "occurrences": 2,
+      "affected_entities": [
+        "HP_Pump_Ok",
+        "HP_Pump_isOff"
+      ],
+      "evidence": [
+        {
+          "metric": "state_transitions",
+          "value": 2,
+          "baseline": 0,
+          "unit": "count"
+        }
+      ],
+      "possible_causes": [
+        {
+          "cause": "Pump protection activation due to pressure anomalies",
+          "confidence": 0.65
+        },
+        {
+          "cause": "Manual or automatic pump cycling",
+          "confidence": 0.55
+        }
+      ],
+      "recommendations": [
+        {
+          "priority": "MEDIUM",
+          "action": "Check high pressure pump motor current and vibration signatures"
+        },
+        {
+          "priority": "LOW",
+          "action": "Verify pump discharge pressure and flow rate sensors"
+        }
+      ],
+      "confidence": 0.60
+    },
+    {
+      "id": "ANOM-003",
+      "severity": "MEDIUM",
+      "type": "MOTION_CONTROL_ACTIVITY",
+      "title": "Multiple motion control position changes",
+      "description": "Observed multiple position change signals in motion control actuators (MPA_* and MPC_* signals).",
+      "first_detected": "2026-08-12T00:00:00Z",
+      "last_detected": "2026-08-12T00:05:16Z",
+      "occurrences": 6,
+      "affected_entities": [
+        "MPA_InitPos",
+        "MPA_WorkPos",
+        "MPC_Closed",
+        "MPC_close"
+      ],
+      "evidence": [
+        {
+          "metric": "position_change_signals",
+          "value": 6,
+          "baseline": 0,
+          "unit": "count"
+        }
+      ],
+      "possible_causes": [
+        {
+          "cause": "Normal positioning cycle during operation",
+          "confidence": 0.70
+        },
+        {
+          "cause": "Response to coolant system disturbances",
+          "confidence": 0.50
+        }
+      ],
+      "recommendations": [
+        {
+          "priority": "LOW",
+          "action": "Correlate motion control activity with coolant system pressure readings"
+        },
+        {
+          "priority": "LOW",
+          "action": "Review motion control program execution logs"
+        }
+      ],
+      "confidence": 0.65
+    }
+  ],
+  "affected_entities": [
+    {
+      "id": "coolant_control_system",
+      "type": "subsystem",
+      "event_count": 4,
+      "anomaly_count": 4,
+      "status": "WARNING"
+    },
+    {
+      "id": "high_pressure_pump",
+      "type": "equipment",
+      "event_count": 2,
+      "anomaly_count": 2,
+      "status": "WARNING"
+    },
+    {
+      "id": "motion_control_system",
+      "type": "subsystem",
+      "event_count": 6,
+      "anomaly_count": 6,
+      "status": "WARNING"
+    }
+  ],
+  "insights": {
+    "summary": "Analysis of the coolant system experimental run shows elevated anomaly rate (0.06) with 12 anomalous observations out of 18,843 total records. Detected anomalies primarily involve state transitions in coolant control valves, high pressure pump, and motion control systems.",
+    "root_cause_hypotheses": [
+      {
+        "description": "Coolant system control valve activity may be responding to pressure regulation needs, with multiple valve state transitions observed.",
+        "confidence": 0.65
+      },
+      {
+        "description": "High pressure pump state change could indicate response to system pressure variations or protection activation.",
+        "confidence": 0.55
+      },
+      {
+        "description": "Motion control position changes appear to be part of normal operational cycling rather than fault-related activity.",
+        "confidence": 0.70
+      }
+    ],
+    "recommendations": [
+      {
+        "priority": "MEDIUM",
+        "action": "Perform detailed inspection of coolant control valves and associated pressure regulation components"
+      },
+      {
+        "priority": "MEDIUM",
+        "action": "Analyze high pressure pump operational parameters including vibration, current draw, and discharge pressure"
+      },
+      {
+        "priority": "LOW",
+        "action": "Correlate timing of observed anomalies with process step transitions in the experimental program"
+      }
+    ]
+  },
+  "metadata": {
+    "parser": {
+      "name": "causRCA_python_pipeline",
+      "version": "1.0"
+    },
+    "embedding": {
+      "enabled": true,
+      "model": "sentence-transformers"
+    },
+    "retrieval": {
+      "enabled": true,
+      "method": "local_similarity"
+    },
+    "llm": {
+      "enabled": true,
+      "provider": "nvidia_nim",
+      "model": "nemotron-3-super-120b-a12b"
+    },
+    "ground_truth": {
+      "available": false,
+      "source": "causRCA"
+    }
+  }
+}

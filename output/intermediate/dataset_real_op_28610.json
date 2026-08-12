@@ -1,0 +1,2318 @@
+{
+  "case": {
+    "dataset": "causRCA",
+    "case_type": "real_op",
+    "family": null,
+    "experiment_id": null,
+    "run_id": null
+  },
+  "time_window": {
+    "start": 0.0,
+    "end": 523.5
+  },
+  "observations": {
+    "total_records": 46358,
+    "variables": 74,
+    "alarms": 1
+  },
+  "signals": [
+    {
+      "node": "CBC_Closed",
+      "statistics": {
+        "type": "Binary",
+        "count": 651,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.7880184331797235,
+        "median": 1.0,
+        "stdev": 0.40902613002632304,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 5
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "CBC_close",
+      "statistics": {
+        "type": "Binary",
+        "count": 650,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.7892307692307692,
+        "median": 1.0,
+        "stdev": 0.40816892667566895,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 5
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "CBC_isOpen",
+      "statistics": {
+        "type": "Binary",
+        "count": 650,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.2,
+        "median": 0.0,
+        "stdev": 0.40030804779305784,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 5
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "CBC_open",
+      "statistics": {
+        "type": "Binary",
+        "count": 649,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.20955315870570107,
+        "median": 0.0,
+        "stdev": 0.4073036344571619,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 5
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "CLF_Filter_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "CLT_Level_lt_Min",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "ExU_On",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "ExU_isOff",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "F_Filter_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "HP_Pump_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "HP_Pump_isOff",
+      "statistics": {
+        "type": "Binary",
+        "count": 1012,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.34782608695652173,
+        "median": 0.0,
+        "stdev": 0.4765159757704823,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 3
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Hyd_Filter_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Hyd_IsEnabled",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Hyd_Level_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Hyd_Pump_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Hyd_Pump_On",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Hyd_Pump_isOff",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Hyd_Temp_lt_70",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Hyd_Temp_lt_80",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Hyd_Valve_P_Up",
+      "statistics": {
+        "type": "Binary",
+        "count": 1048,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.06774809160305344,
+        "median": 0.0,
+        "stdev": 0.2514331139470211,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 54
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "LP_Pump_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "LP_Pump_On",
+      "statistics": {
+        "type": "Binary",
+        "count": 1047,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.07736389684813753,
+        "median": 0.0,
+        "stdev": 0.26729564906822534,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 27
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "LT_Level_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "LT_Pump_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 784,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9221938775510204,
+        "median": 1.0,
+        "stdev": 0.2680372501575971,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 1
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Lubr_On",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Lubr_P_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "MPA_InitPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 1005,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6825870646766169,
+        "median": 1.0,
+        "stdev": 0.4657013663084045,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "MPA_WorkPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 1004,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.3047808764940239,
+        "median": 0.0,
+        "stdev": 0.46054397134714087,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "MPA_toInitPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 1003,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6909272183449651,
+        "median": 1.0,
+        "stdev": 0.4623417760177385,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "MPA_toWorkPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 1003,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.3090727816550349,
+        "median": 0.0,
+        "stdev": 0.4623417760177385,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "MPC_Closed",
+      "statistics": {
+        "type": "Binary",
+        "count": 1006,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.672962226640159,
+        "median": 1.0,
+        "stdev": 0.46936452494646547,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "MPC_close",
+      "statistics": {
+        "type": "Binary",
+        "count": 1005,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6776119402985075,
+        "median": 1.0,
+        "stdev": 0.46762333381409316,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "MPC_isOpen",
+      "statistics": {
+        "type": "Binary",
+        "count": 1005,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.3174129353233831,
+        "median": 0.0,
+        "stdev": 0.4657013663084045,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "MPC_open",
+      "statistics": {
+        "type": "Binary",
+        "count": 1005,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.32238805970149254,
+        "median": 0.0,
+        "stdev": 0.46762333381409316,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "MP_Inactive",
+      "statistics": {
+        "type": "Binary",
+        "count": 945,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.7523809523809524,
+        "median": 1.0,
+        "stdev": 0.4318578593168741,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "M_ErrorActive",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "M_Lifebit",
+      "statistics": {
+        "type": "Binary",
+        "count": 1041,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.1873198847262248,
+        "median": 0.0,
+        "stdev": 0.39035563479195845,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 109
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "M_PowerOnDuration",
+      "statistics": {
+        "type": "Counter",
+        "count": 1002,
+        "min": 46073.0,
+        "max": 46081.0,
+        "mean": 46077.31936127745,
+        "median": 46077.0,
+        "stdev": 2.417428474802673,
+        "first": 46073.0,
+        "last": 46081.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "M_WarnActive",
+      "statistics": {
+        "type": "Binary",
+        "count": 499,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9959919839679359,
+        "median": 1.0,
+        "stdev": 0.06324529869563543,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 2
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "M_WarnWithStacklight",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Prog_CuttingTime",
+      "statistics": {
+        "type": "Counter",
+        "count": 1033,
+        "min": 7830237.617,
+        "max": 7830438.277,
+        "mean": 7830323.917300097,
+        "median": 7830309.265,
+        "stdev": 45.95059813578482,
+        "first": 7830237.617,
+        "last": 7830438.277,
+        "change_count": 229
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Prog_CycleTime",
+      "statistics": {
+        "type": "Counter",
+        "count": 1047,
+        "min": 11762.224,
+        "max": 12285.096,
+        "mean": 12023.915316141356,
+        "median": 12024.194,
+        "stdev": 151.1428324965262,
+        "first": 11762.224,
+        "last": 12285.096,
+        "change_count": 523
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "SL_Green",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "SL_Red",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "SL_Yellow",
+      "statistics": {
+        "type": "Binary",
+        "count": 486,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6502057613168725,
+        "median": 1.0,
+        "stdev": 0.47739624429799565,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 12
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "SRL_Locked",
+      "statistics": {
+        "type": "Binary",
+        "count": 684,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.36257309941520466,
+        "median": 0.0,
+        "stdev": 0.4810948216777416,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 1
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "SRL_Unlocked",
+      "statistics": {
+        "type": "Binary",
+        "count": 684,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6388888888888888,
+        "median": 1.0,
+        "stdev": 0.4806741781372282,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 1
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "SRL_lock",
+      "statistics": {
+        "type": "Binary",
+        "count": 684,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.3611111111111111,
+        "median": 0.0,
+        "stdev": 0.4806741781372282,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 1
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "SRL_unlock",
+      "statistics": {
+        "type": "Binary",
+        "count": 683,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6383601756954612,
+        "median": 1.0,
+        "stdev": 0.4808273713011193,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 1
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "SR_loosen",
+      "statistics": {
+        "type": "Binary",
+        "count": 1045,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9559808612440192,
+        "median": 1.0,
+        "stdev": 0.20523586939291202,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 2
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "SR_tighten",
+      "statistics": {
+        "type": "Binary",
+        "count": 1045,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.0430622009569378,
+        "median": 0.0,
+        "stdev": 0.20309435965646588,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 2
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Spd_ActPos_C",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1047,
+        "min": 0.0,
+        "max": 359.235,
+        "mean": 110.40387297039159,
+        "median": 102.044,
+        "stdev": 94.20322276341444,
+        "first": 30.0,
+        "last": 331.855,
+        "change_count": 218
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Spd_ActPos_X",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1045,
+        "min": -1.066,
+        "max": 749.25,
+        "mean": 188.49251578947369,
+        "median": 150.0,
+        "stdev": 189.66192310125527,
+        "first": 155.006,
+        "last": 77.679,
+        "change_count": 210
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Spd_ActPos_Z",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1045,
+        "min": 199.968,
+        "max": 495.0,
+        "mean": 407.7736842105263,
+        "median": 399.814,
+        "stdev": 90.59939755561518,
+        "first": 384.666,
+        "last": 241.861,
+        "change_count": 213
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Spd_ActSpeed_C",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1047,
+        "min": -839069.824,
+        "max": 38917.969,
+        "mean": -95760.23572683858,
+        "median": 0.0,
+        "stdev": 180634.88152398745,
+        "first": 0.0,
+        "last": -150046.875,
+        "change_count": 192
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Spd_ActSpeed_X",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1042,
+        "min": -36000.0,
+        "max": 36000.0,
+        "mean": -88.20131669865643,
+        "median": 0.0,
+        "stdev": 3861.060275065047,
+        "first": 100.0,
+        "last": 5408.129,
+        "change_count": 173
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Spd_ActSpeed_Z",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1044,
+        "min": -36000.0,
+        "max": 21900.0,
+        "mean": -365.37029022988503,
+        "median": 0.0,
+        "stdev": 3349.3100679688155,
+        "first": 0.0,
+        "last": -36000.0,
+        "change_count": 183
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Spd_InnerCoolOn",
+      "statistics": {
+        "type": "Binary",
+        "count": 1034,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.1344294003868472,
+        "median": 0.0,
+        "stdev": 0.34127815295254277,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 13
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "Spd_OuterCoolOn",
+      "statistics": {
+        "type": "Binary",
+        "count": 821,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.14859926918392205,
+        "median": 0.0,
+        "stdev": 0.3559098425841097,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 9
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "TL_Locked",
+      "statistics": {
+        "type": "Binary",
+        "count": 1038,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9749518304431599,
+        "median": 1.0,
+        "stdev": 0.15634675624567962,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 27
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "TL_lock",
+      "statistics": {
+        "type": "Binary",
+        "count": 1037,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9681774349083896,
+        "median": 1.0,
+        "stdev": 0.17561215424373217,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 33
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "TL_unlock",
+      "statistics": {
+        "type": "Binary",
+        "count": 1037,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.027965284474445518,
+        "median": 0.0,
+        "stdev": 0.16495292048077287,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 31
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "WCL_InitPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 648,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.8765432098765432,
+        "median": 1.0,
+        "stdev": 0.32921492674378733,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "WCL_Locked",
+      "statistics": {
+        "type": "Binary",
+        "count": 646,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.10681114551083591,
+        "median": 0.0,
+        "stdev": 0.30911233491485784,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "WCL_Unlocked",
+      "statistics": {
+        "type": "Binary",
+        "count": 645,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.8945736434108527,
+        "median": 1.0,
+        "stdev": 0.3073403432212118,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "WCL_WorkPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 647,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.11901081916537867,
+        "median": 0.0,
+        "stdev": 0.32405176488084886,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "WCL_toInitPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 647,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.8778979907264297,
+        "median": 1.0,
+        "stdev": 0.32765689708837026,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "WCL_toWorkPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 647,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.1205564142194745,
+        "median": 0.0,
+        "stdev": 0.3258629878154148,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "node": "WC_inPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 645,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9751937984496124,
+        "median": 1.0,
+        "stdev": 0.1556548018944016,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 3
+      },
+      "source": "deterministic_python_analysis"
+    }
+  ],
+  "alarms": [
+    {
+      "node": "T_A_701309",
+      "count": 363,
+      "first": 11.0,
+      "last": 518.5
+    }
+  ],
+  "events": [],
+  "relationships": [],
+  "affected_entities": [],
+  "timeline": [],
+  "evidence": [
+    {
+      "type": "signal_statistics",
+      "node": "CBC_Closed",
+      "statistics": {
+        "type": "Binary",
+        "count": 651,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.7880184331797235,
+        "median": 1.0,
+        "stdev": 0.40902613002632304,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 5
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "CBC_close",
+      "statistics": {
+        "type": "Binary",
+        "count": 650,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.7892307692307692,
+        "median": 1.0,
+        "stdev": 0.40816892667566895,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 5
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "CBC_isOpen",
+      "statistics": {
+        "type": "Binary",
+        "count": 650,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.2,
+        "median": 0.0,
+        "stdev": 0.40030804779305784,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 5
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "CBC_open",
+      "statistics": {
+        "type": "Binary",
+        "count": 649,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.20955315870570107,
+        "median": 0.0,
+        "stdev": 0.4073036344571619,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 5
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "CLF_Filter_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "CLT_Level_lt_Min",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "ExU_On",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "ExU_isOff",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "F_Filter_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "HP_Pump_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "HP_Pump_isOff",
+      "statistics": {
+        "type": "Binary",
+        "count": 1012,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.34782608695652173,
+        "median": 0.0,
+        "stdev": 0.4765159757704823,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 3
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Hyd_Filter_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Hyd_IsEnabled",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Hyd_Level_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Hyd_Pump_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Hyd_Pump_On",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Hyd_Pump_isOff",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Hyd_Temp_lt_70",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Hyd_Temp_lt_80",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Hyd_Valve_P_Up",
+      "statistics": {
+        "type": "Binary",
+        "count": 1048,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.06774809160305344,
+        "median": 0.0,
+        "stdev": 0.2514331139470211,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 54
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "LP_Pump_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "LP_Pump_On",
+      "statistics": {
+        "type": "Binary",
+        "count": 1047,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.07736389684813753,
+        "median": 0.0,
+        "stdev": 0.26729564906822534,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 27
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "LT_Level_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "LT_Pump_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 784,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9221938775510204,
+        "median": 1.0,
+        "stdev": 0.2680372501575971,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 1
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Lubr_On",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Lubr_P_Ok",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "MPA_InitPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 1005,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6825870646766169,
+        "median": 1.0,
+        "stdev": 0.4657013663084045,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "MPA_WorkPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 1004,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.3047808764940239,
+        "median": 0.0,
+        "stdev": 0.46054397134714087,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "MPA_toInitPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 1003,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6909272183449651,
+        "median": 1.0,
+        "stdev": 0.4623417760177385,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "MPA_toWorkPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 1003,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.3090727816550349,
+        "median": 0.0,
+        "stdev": 0.4623417760177385,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "MPC_Closed",
+      "statistics": {
+        "type": "Binary",
+        "count": 1006,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.672962226640159,
+        "median": 1.0,
+        "stdev": 0.46936452494646547,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "MPC_close",
+      "statistics": {
+        "type": "Binary",
+        "count": 1005,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6776119402985075,
+        "median": 1.0,
+        "stdev": 0.46762333381409316,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "MPC_isOpen",
+      "statistics": {
+        "type": "Binary",
+        "count": 1005,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.3174129353233831,
+        "median": 0.0,
+        "stdev": 0.4657013663084045,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "MPC_open",
+      "statistics": {
+        "type": "Binary",
+        "count": 1005,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.32238805970149254,
+        "median": 0.0,
+        "stdev": 0.46762333381409316,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "MP_Inactive",
+      "statistics": {
+        "type": "Binary",
+        "count": 945,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.7523809523809524,
+        "median": 1.0,
+        "stdev": 0.4318578593168741,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "M_ErrorActive",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "M_Lifebit",
+      "statistics": {
+        "type": "Binary",
+        "count": 1041,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.1873198847262248,
+        "median": 0.0,
+        "stdev": 0.39035563479195845,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 109
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "M_PowerOnDuration",
+      "statistics": {
+        "type": "Counter",
+        "count": 1002,
+        "min": 46073.0,
+        "max": 46081.0,
+        "mean": 46077.31936127745,
+        "median": 46077.0,
+        "stdev": 2.417428474802673,
+        "first": 46073.0,
+        "last": 46081.0,
+        "change_count": 8
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "M_WarnActive",
+      "statistics": {
+        "type": "Binary",
+        "count": 499,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9959919839679359,
+        "median": 1.0,
+        "stdev": 0.06324529869563543,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 2
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "M_WarnWithStacklight",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Prog_CuttingTime",
+      "statistics": {
+        "type": "Counter",
+        "count": 1033,
+        "min": 7830237.617,
+        "max": 7830438.277,
+        "mean": 7830323.917300097,
+        "median": 7830309.265,
+        "stdev": 45.95059813578482,
+        "first": 7830237.617,
+        "last": 7830438.277,
+        "change_count": 229
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Prog_CycleTime",
+      "statistics": {
+        "type": "Counter",
+        "count": 1047,
+        "min": 11762.224,
+        "max": 12285.096,
+        "mean": 12023.915316141356,
+        "median": 12024.194,
+        "stdev": 151.1428324965262,
+        "first": 11762.224,
+        "last": 12285.096,
+        "change_count": 523
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "SL_Green",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "median": 1.0,
+        "stdev": 0.0,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "SL_Red",
+      "statistics": {
+        "type": "Binary",
+        "count": 1,
+        "min": 0.0,
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "stdev": 0.0,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 0
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "SL_Yellow",
+      "statistics": {
+        "type": "Binary",
+        "count": 486,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6502057613168725,
+        "median": 1.0,
+        "stdev": 0.47739624429799565,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 12
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "SRL_Locked",
+      "statistics": {
+        "type": "Binary",
+        "count": 684,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.36257309941520466,
+        "median": 0.0,
+        "stdev": 0.4810948216777416,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 1
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "SRL_Unlocked",
+      "statistics": {
+        "type": "Binary",
+        "count": 684,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6388888888888888,
+        "median": 1.0,
+        "stdev": 0.4806741781372282,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 1
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "SRL_lock",
+      "statistics": {
+        "type": "Binary",
+        "count": 684,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.3611111111111111,
+        "median": 0.0,
+        "stdev": 0.4806741781372282,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 1
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "SRL_unlock",
+      "statistics": {
+        "type": "Binary",
+        "count": 683,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.6383601756954612,
+        "median": 1.0,
+        "stdev": 0.4808273713011193,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 1
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "SR_loosen",
+      "statistics": {
+        "type": "Binary",
+        "count": 1045,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9559808612440192,
+        "median": 1.0,
+        "stdev": 0.20523586939291202,
+        "first": 1.0,
+        "last": 1.0,
+        "change_count": 2
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "SR_tighten",
+      "statistics": {
+        "type": "Binary",
+        "count": 1045,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.0430622009569378,
+        "median": 0.0,
+        "stdev": 0.20309435965646588,
+        "first": 0.0,
+        "last": 0.0,
+        "change_count": 2
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Spd_ActPos_C",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1047,
+        "min": 0.0,
+        "max": 359.235,
+        "mean": 110.40387297039159,
+        "median": 102.044,
+        "stdev": 94.20322276341444,
+        "first": 30.0,
+        "last": 331.855,
+        "change_count": 218
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Spd_ActPos_X",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1045,
+        "min": -1.066,
+        "max": 749.25,
+        "mean": 188.49251578947369,
+        "median": 150.0,
+        "stdev": 189.66192310125527,
+        "first": 155.006,
+        "last": 77.679,
+        "change_count": 210
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Spd_ActPos_Z",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1045,
+        "min": 199.968,
+        "max": 495.0,
+        "mean": 407.7736842105263,
+        "median": 399.814,
+        "stdev": 90.59939755561518,
+        "first": 384.666,
+        "last": 241.861,
+        "change_count": 213
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Spd_ActSpeed_C",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1047,
+        "min": -839069.824,
+        "max": 38917.969,
+        "mean": -95760.23572683858,
+        "median": 0.0,
+        "stdev": 180634.88152398745,
+        "first": 0.0,
+        "last": -150046.875,
+        "change_count": 192
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Spd_ActSpeed_X",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1042,
+        "min": -36000.0,
+        "max": 36000.0,
+        "mean": -88.20131669865643,
+        "median": 0.0,
+        "stdev": 3861.060275065047,
+        "first": 100.0,
+        "last": 5408.129,
+        "change_count": 173
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Spd_ActSpeed_Z",
+      "statistics": {
+        "type": "Continuous",
+        "count": 1044,
+        "min": -36000.0,
+        "max": 21900.0,
+        "mean": -365.37029022988503,
+        "median": 0.0,
+        "stdev": 3349.3100679688155,
+        "first": 0.0,
+        "last": -36000.0,
+        "change_count": 183
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Spd_InnerCoolOn",
+      "statistics": {
+        "type": "Binary",
+        "count": 1034,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.1344294003868472,
+        "median": 0.0,
+        "stdev": 0.34127815295254277,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 13
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "Spd_OuterCoolOn",
+      "statistics": {
+        "type": "Binary",
+        "count": 821,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.14859926918392205,
+        "median": 0.0,
+        "stdev": 0.3559098425841097,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 9
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "TL_Locked",
+      "statistics": {
+        "type": "Binary",
+        "count": 1038,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9749518304431599,
+        "median": 1.0,
+        "stdev": 0.15634675624567962,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 27
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "TL_lock",
+      "statistics": {
+        "type": "Binary",
+        "count": 1037,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9681774349083896,
+        "median": 1.0,
+        "stdev": 0.17561215424373217,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 33
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "TL_unlock",
+      "statistics": {
+        "type": "Binary",
+        "count": 1037,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.027965284474445518,
+        "median": 0.0,
+        "stdev": 0.16495292048077287,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 31
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "WCL_InitPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 648,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.8765432098765432,
+        "median": 1.0,
+        "stdev": 0.32921492674378733,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "WCL_Locked",
+      "statistics": {
+        "type": "Binary",
+        "count": 646,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.10681114551083591,
+        "median": 0.0,
+        "stdev": 0.30911233491485784,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "WCL_Unlocked",
+      "statistics": {
+        "type": "Binary",
+        "count": 645,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.8945736434108527,
+        "median": 1.0,
+        "stdev": 0.3073403432212118,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "WCL_WorkPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 647,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.11901081916537867,
+        "median": 0.0,
+        "stdev": 0.32405176488084886,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "WCL_toInitPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 647,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.8778979907264297,
+        "median": 1.0,
+        "stdev": 0.32765689708837026,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "WCL_toWorkPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 647,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.1205564142194745,
+        "median": 0.0,
+        "stdev": 0.3258629878154148,
+        "first": 0.0,
+        "last": 1.0,
+        "change_count": 7
+      },
+      "source": "deterministic_python_analysis"
+    },
+    {
+      "type": "signal_statistics",
+      "node": "WC_inPos",
+      "statistics": {
+        "type": "Binary",
+        "count": 645,
+        "min": 0.0,
+        "max": 1.0,
+        "mean": 0.9751937984496124,
+        "median": 1.0,
+        "stdev": 0.1556548018944016,
+        "first": 1.0,
+        "last": 0.0,
+        "change_count": 3
+      },
+      "source": "deterministic_python_analysis"
+    }
+  ],
+  "ground_truth_available": false,
+  "data_quality": {
+    "raw_records": 3326,
+    "normalized_records": 3326,
+    "resampled_records": 46358,
+    "normalization_issues": 0
+  }
+}
